@@ -150,6 +150,9 @@ include_directories(
 #   ${catkin_LIBRARIES}
 # )
 
+add_executable(motor_listener_node src/bb-blue-motor-listener-node.cpp)
+target_link_libraries(motor_listener_node ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############

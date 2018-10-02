@@ -151,7 +151,7 @@ include_directories(
 # )
 
 add_executable(motor_listener_node src/bb-blue-motor-listener-node.cpp)
-target_link_libraries(motor_listener_node ${catkin_LIBRARIES})
+target_link_libraries(motor_listener_node ${catkin_LIBRARIES} robotcontrol)
 
 #############
 ## Install ##

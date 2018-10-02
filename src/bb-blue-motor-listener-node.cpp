@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008, Morgan Quigley and Willow Garage, Inc.
+ * Copyright (C) 2018, usxbrix
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -32,49 +32,37 @@
 
 #include <rc/motor.h>
 
-/**
- * This tutorial demonstrates simple receipt of messages over the ROS system.
- */
 // %Tag(CALLBACK)%
 void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
 {
 
-  int m1=1;
-  int m2=2;
-  int m3=3;
-  int m4=4;
-
-  //ROS_INFO("I heard: [%s]", msg->data.c_str());
-
-  ROS_INFO("cmd_vel Linear Components: [%f, %f, %f]", cmd_vel->linear.x, cmd_vel->linear.y, cmd_vel->linear.z);
-  ROS_INFO("cmd_vel Angular Components: [%f, %f, %f]", cmd_vel->angular.x, cmd_vel->angular.y, cmd_vel->angular.z);
+  ROS_INFO("cmd_vel Linear: [%f, %f, %f] Angular: [%f, %f, %f]", cmd_vel->linear.x, cmd_vel->linear.y, cmd_vel->linear.z, cmd_vel->angular.x, cmd_vel->angular.y, cmd_vel->angular.z);
 
   double dx = cmd_vel->linear.x;
   double dr = cmd_vel->angular.z;
   double dy = cmd_vel->linear.y;
 
-/*
-velocity_left_cmd = (linear_velocity – angular_velocity * WHEEL_BASE / 2.0)/WHEEL_RADIUS;
+  /*
+  velocity_left_cmd = (linear_velocity – angular_velocity * WHEEL_BASE / 2.0)/WHEEL_RADIUS;
+  velocity_right_cmd = (linear_velocity + angular_velocity * WHEEL_BASE / 2.0)/WHEEL_RADIUS;
 
-velocity_right_cmd = (linear_velocity + angular_velocity * WHEEL_BASE / 2.0)/WHEEL_RADIUS;
+  self.right = 1.0 * self.dx + self.dr * self.w / 2
+  self.left = 1.0 * self.dx - self.dr * self.w / 2
 
-# dx = (l + r) / 2
-# dr = (r - l) / w
-
-self.right = 1.0 * self.dx + self.dr * self.w / 2
-self.left = 1.0 * self.dx - self.dr * self.w / 2
-
-*/
-double wb = 0.2; //wheel base
-double velocity_left = (dx – dr * wb / 2.0);
-
-double velocity_right = (dx + dr * wb / 2.0);
-
-ROS_INFO("Motor speed: [%f, %d]", velocity_left, volocity_right)
+  */
 
 
+  double wb = 0.2; //wheel base
+  double velocity_left = ( dx - dr * wb / 2.0);
+  double velocity_right = ( dx + dr * wb / 2.0);
 
-/*
+  ROS_INFO("set motor speed left: %f right: %f", velocity_left, velocity_right);
+
+  rc_motor_set(1,velocity_left);
+  rc_motor_set(2,velocity_right);
+
+
+  /*
   if cmd_vel->linear.x >0:
         ROS_INFO("Driving forward");
     //    forward(cmd_vel->linear.x)
@@ -132,8 +120,9 @@ int main(int argc, char **argv)
   ros::NodeHandle n;
 
   // initialize hardware first
-  ROS_INFO("Initialize motor");
-        if(rc_motor_init_freq(freq_hz)) return -1;
+  int freq_hz = RC_MOTOR_DEFAULT_PWM_FREQ;
+  if(rc_motor_init_freq(freq_hz)) return -1;
+  ROS_INFO("Initialize motor okay");
   /**
    * The subscribe() call is how you tell ROS that you want to receive messages
    * on a given topic.  This invokes a call to the ROS

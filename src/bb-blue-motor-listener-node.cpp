@@ -30,21 +30,83 @@
 #include "std_msgs/String.h"
 #include <geometry_msgs/Twist.h>
 
+#include <rc/motor.h>
+
 /**
  * This tutorial demonstrates simple receipt of messages over the ROS system.
  */
 // %Tag(CALLBACK)%
 void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
 {
-  printf(" test \n");
-double g_vel = cmd_vel->linear.x;
-double t_vel = cmd_vel->angular.z;
 
+  int m1=1;
+  int m2=2;
+  int m3=3;
+  int m4=4;
 
   //ROS_INFO("I heard: [%s]", msg->data.c_str());
 
   ROS_INFO("cmd_vel Linear Components: [%f, %f, %f]", cmd_vel->linear.x, cmd_vel->linear.y, cmd_vel->linear.z);
   ROS_INFO("cmd_vel Angular Components: [%f, %f, %f]", cmd_vel->angular.x, cmd_vel->angular.y, cmd_vel->angular.z);
+
+  double dx = cmd_vel->linear.x;
+  double dr = cmd_vel->angular.z;
+  double dy = cmd_vel->linear.y;
+
+/*
+velocity_left_cmd = (linear_velocity – angular_velocity * WHEEL_BASE / 2.0)/WHEEL_RADIUS;
+
+velocity_right_cmd = (linear_velocity + angular_velocity * WHEEL_BASE / 2.0)/WHEEL_RADIUS;
+
+# dx = (l + r) / 2
+# dr = (r - l) / w
+
+self.right = 1.0 * self.dx + self.dr * self.w / 2
+self.left = 1.0 * self.dx - self.dr * self.w / 2
+
+*/
+double wb = 0.2; //wheel base
+double velocity_left = (dx – dr * wb / 2.0);
+
+double velocity_right = (dx + dr * wb / 2.0);
+
+ROS_INFO("Motor speed: [%f, %d]", velocity_left, volocity_right)
+
+
+
+/*
+  if cmd_vel->linear.x >0:
+        ROS_INFO("Driving forward");
+    //    forward(cmd_vel->linear.x)
+    //   rc_motor_set(m1,cmd_vel->linear.x);
+    //   rc_motor_set(m2,cmd_vel->linear.x);
+
+
+
+    elif cmd_vel->linear.x <0:
+        ROS_INFO("Driving backward");
+      //  backward(abs(cmd_vel->linear.x))
+      //   rc_motor_set(m1,cmd_vel->linear.x);
+      //   rc_motor_set(m2,cmd_vel->linear.x);
+
+    elif cmd_vel->angular.z > 0:
+        ROS_INFO("Turning left");
+      //  left(cmd_vel->angular.z)
+      //   rc_motor_set(m1,cmd_vel->linear.x);
+      //   rc_motor_set(m2,cmd_vel->linear.x);
+
+    elif cmd_vel->angular.z < 0:
+        ROS_INFO("Turning right");
+      //  right(abs(cmd_vel->angular.z))
+      //   rc_motor_set(m1,cmd_vel->linear.x);
+      //   rc_motor_set(m2,cmd_vel->linear.x);
+
+
+    else:
+        ROS_INFO("Stopping");
+      //  stop()
+  */
+  
 }
 // %EndTag(CALLBACK)%
 
@@ -69,6 +131,9 @@ int main(int argc, char **argv)
    */
   ros::NodeHandle n;
 
+  // initialize hardware first
+  ROS_INFO("Initialize motor");
+        if(rc_motor_init_freq(freq_hz)) return -1;
   /**
    * The subscribe() call is how you tell ROS that you want to receive messages
    * on a given topic.  This invokes a call to the ROS
@@ -98,6 +163,8 @@ int main(int argc, char **argv)
   ros::spin();
 // %EndTag(SPIN)%
 
+  ROS_INFO("Calling rc_motor_cleanup()");
+  rc_motor_cleanup();
   return 0;
 }
 // %EndTag(FULLTEXT)%

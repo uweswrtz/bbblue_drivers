@@ -41,10 +41,10 @@ double g_vel = cmd_vel->linear.x;
 double t_vel = cmd_vel->angular.z;
 
 
-  ROS_INFO("I heard: [%s]", msg->data.c_str());
+  //ROS_INFO("I heard: [%s]", msg->data.c_str());
 
-  ROS_INFO("cmd_vel Linear Components: [%d, %d, %d]", cmd_vel->linear.x, cmd_vel->linear.y, cmd_vel->linear.z);
-  ROS_INFO("cmd_vel Angular Components: [%d, %d, %d]", cmd_vel->angular.x, cmd_vel->angular.y, cmd_vel->angular.z);
+  ROS_INFO("cmd_vel Linear Components: [%f, %f, %f]", cmd_vel->linear.x, cmd_vel->linear.y, cmd_vel->linear.z);
+  ROS_INFO("cmd_vel Angular Components: [%f, %f, %f]", cmd_vel->angular.x, cmd_vel->angular.y, cmd_vel->angular.z);
 }
 // %EndTag(CALLBACK)%
 
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
    * You must call one of the versions of ros::init() before using any other
    * part of the ROS system.
    */
-  ros::init(argc, argv, "bb-blue-motor-listener-node");
+  ros::init(argc, argv, "motor_listener_node");
 
   /**
    * NodeHandle is the main access point to communications with the ROS system.

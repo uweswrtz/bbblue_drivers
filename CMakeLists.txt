@@ -153,6 +153,9 @@ include_directories(
 add_executable(motor_listener_node src/bb-blue-motor-listener-node.cpp)
 target_link_libraries(motor_listener_node ${catkin_LIBRARIES} robotcontrol)
 
+add_executable(imu_pub_node src/bb-blue-imu-mpu9250.cpp)
+target_link_libraries(imu_pub_node ${catkin_LIBRARIES} robotcontrol)
+
 #############
 ## Install ##
 #############

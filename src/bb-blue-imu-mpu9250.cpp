@@ -21,6 +21,8 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 #include <sensor_msgs/Imu.h>
+#include "geometry_msgs/Vector3Stamped.h"
+#include "sensor_msgs/MagneticField.h"
 
 // bus for Robotics Cape and BeagleboneBlue is 2, interrupt pin is on gpio3.21
 // change these for your platform
@@ -51,6 +53,7 @@ static void __pub_data(void);
 
 
 ros::Publisher imu_pub;
+ros::Publisher mag_pub;
 std::string imu_frame_id_;
 
 
@@ -146,8 +149,6 @@ static void __pub_data(void)
 	sensor_msgs::Imu imu_msg;
 
 	ros::Time current_time = ros::Time::now();
-	//std::string imu_frame_id_;
-	//
 
       	imu_msg.header.stamp = current_time;
         imu_msg.header.frame_id = imu_frame_id_;
@@ -156,15 +157,15 @@ static void __pub_data(void)
         imu_msg.orientation.z = data.fused_quat[QUAT_Z];
         imu_msg.orientation.w = data.fused_quat[QUAT_W];
 
-	// TODO convertion to rad/s
-        imu_msg.angular_velocity.x = data.gyro[0];
-        imu_msg.angular_velocity.y = data.gyro[1];
-        imu_msg.angular_velocity.z = data.gyro[2];
+        imu_msg.angular_velocity.x = data.gyro[0]*3.14159265358979323846/180;
+        imu_msg.angular_velocity.y = data.gyro[1]*3.14159265358979323846/180;
+        imu_msg.angular_velocity.z = data.gyro[2]*3.14159265358979323846/180;
 
         imu_msg.linear_acceleration.x = data.accel[0];
         imu_msg.linear_acceleration.y = data.accel[1];
         imu_msg.linear_acceleration.z = data.accel[2];
 
+	
 	imu_msg.orientation_covariance[0] = 0;
 	imu_msg.orientation_covariance[1] = 0;
 	imu_msg.orientation_covariance[2] = 0;
@@ -174,8 +175,18 @@ static void __pub_data(void)
 	imu_msg.orientation_covariance[6] = 0;
 	imu_msg.orientation_covariance[7] = 0;
         imu_msg.orientation_covariance[8] = 0;
+	
 
 	imu_pub.publish(imu_msg);
+
+	sensor_msgs::MagneticField mag_msg;
+    	mag_msg.header = imu_msg.header;
+
+	mag_msg.magnetic_field.x = data.mag[0]/1000000;
+	mag_msg.magnetic_field.y = data.mag[1]/1000000;
+	mag_msg.magnetic_field.z = data.mag[2]/1000000;
+
+        mag_pub.publish(mag_msg);
 
 	return;
 
@@ -402,6 +413,8 @@ int main(int argc, char *argv[])
 
 	//ros::Publisher imu_pub = n.advertise<sensor_msgs::Imu>("imu_publisher", 10);
 	imu_pub = n.advertise<sensor_msgs::Imu>("data", 1, false);
+	//imu_pub = n.advertise<sensor_msgs::Imu>("data_raw", 1, false);
+	mag_pub = n.advertise<sensor_msgs::MagneticField>("mag", 1, false);
 
 	ros::Rate loop_rate(10);
 

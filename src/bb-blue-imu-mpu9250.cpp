@@ -18,7 +18,9 @@
 #include <rc/mpu.h>
 #include <rc/time.h>
 
-#include <ros.h>
+#include <ros/ros.h>
+#include <geometry_msgs/Twist.h>
+#include <sensor_msgs/Imu.h>
 
 // bus for Robotics Cape and BeagleboneBlue is 2, interrupt pin is on gpio3.21
 // change these for your platform
@@ -29,12 +31,12 @@
 // Global Variables
 static int running = 0;
 static int silent_mode = 0;
-static int show_accel = 0;
-static int show_gyro  = 0;
+static int show_accel = 1;
+static int show_gyro  = 1;
 static int enable_mag = 0;
 static int show_compass = 0;
 static int show_temp  = 0;
-static int show_quat  = 0;
+static int show_quat  = 1;
 static int show_tb = 0;
 static int orientation_menu = 0;
 static rc_mpu_data_t data;
@@ -178,6 +180,7 @@ static void __signal_handler(__attribute__ ((unused)) int dummy)
  *
  * @return     the orientation enum chosen by user
  */
+ /*
 rc_mpu_orientation_t __orientation_prompt(){
 	int c;
 
@@ -231,6 +234,7 @@ rc_mpu_orientation_t __orientation_prompt(){
 	}
 	return 0;
 }
+*/
 
 /**
  * main() serves to parse user options, initialize the imu and interrupt
@@ -254,7 +258,10 @@ int main(int argc, char *argv[])
 	conf.gpio_interrupt_pin_chip = GPIO_INT_PIN_CHIP;
 	conf.gpio_interrupt_pin = GPIO_INT_PIN_PIN;
 
+
+
 	// parse arguments
+	/*
 	opterr = 0;
 	while ((c=getopt(argc, argv, "sr:mbagrqTtcp:hwo"))!=-1 && argc>1){
 		switch (c){
@@ -339,15 +346,27 @@ int main(int argc, char *argv[])
 	if(orientation_menu){
 		conf.orient=__orientation_prompt();
 	}
+
+	*/
+
+	ros::init(argc, argv, "bb_blue_imu_publisher");
+	ros::NodeHandle n;
+
+	ros::Publisher imu_pub = n.advertise<sensor_msgs::Imu>("imu_publisher", 10);
+
+	ros::Rate loop_rate(10);
+
 	// set signal handler so the loop can exit cleanly
 	signal(SIGINT, __signal_handler);
 	running = 1;
 
 	// now set up the imu for dmp interrupt operation
 	if(rc_mpu_initialize_dmp(&data, conf)){
+		ROS_INFO("rc_mpu_initialize_failed");
 		printf("rc_mpu_initialize_failed\n");
 		return -1;
 	}
+	ROS_INFO("MPU initialized");
 	// write labels for what data will be printed and associate the interrupt
 	// function to print data immediately after the header.
 	__print_header();

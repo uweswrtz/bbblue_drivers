@@ -47,7 +47,11 @@ static void __print_usage(void);
 static void __print_data(void);
 static void __print_header(void);
 
-static voide __pub_data(void);
+static void __pub_data(void);
+
+
+ros::Publisher imu_pub;
+std::string imu_frame_id_;
 
 
 /**
@@ -137,6 +141,34 @@ static void __print_data(void)
 static void __pub_data(void)
 {
      //publish IMU data
+     //
+     //
+	sensor_msgs::Imu imu_msg;
+
+	ros::Time current_time = ros::Time::now();
+	//std::string imu_frame_id_;
+	//
+
+      	imu_msg.header.stamp = current_time;
+        imu_msg.header.frame_id = imu_frame_id_;
+        imu_msg.orientation.x = data.fused_quat[QUAT_X];
+        imu_msg.orientation.y = data.fused_quat[QUAT_Y];
+        imu_msg.orientation.z = data.fused_quat[QUAT_Z];
+        imu_msg.orientation.w = data.fused_quat[QUAT_W];
+
+	// TODO convertion to required unit
+        imu_msg.angular_velocity.x = data.gyro[0];
+        imu_msg.angular_velocity.y = data.gyro[1];
+        imu_msg.angular_velocity.z = data.gyro[2];
+
+        imu_msg.linear_acceleration.x = data.accel[0];
+        imu_msg.linear_acceleration.y = data.accel[1];
+        imu_msg.linear_acceleration.z = data.accel[2];
+
+	imu_pub.publish(imu_msg);
+
+	return;
+
 }
 /**
  * Based on which data is marked to be printed, print the correct labels. this
@@ -258,6 +290,10 @@ int main(int argc, char *argv[])
 	conf.gpio_interrupt_pin_chip = GPIO_INT_PIN_CHIP;
 	conf.gpio_interrupt_pin = GPIO_INT_PIN_PIN;
 
+	conf.enable_magnetometer = 1;
+	conf.dmp_fetch_accel_gyro=1;
+	conf.dmp_sample_rate = 10;
+
 
 
 	// parse arguments
@@ -351,8 +387,11 @@ int main(int argc, char *argv[])
 
 	ros::init(argc, argv, "imu_pub_node");
 	ros::NodeHandle n;
+	n.param<std::string>("frame_id", imu_frame_id_, "imu_link");
+	ROS_INFO("FrameID: %s",imu_frame_id_.c_str());
 
-	ros::Publisher imu_pub = n.advertise<sensor_msgs::Imu>("imu_publisher", 10);
+	//ros::Publisher imu_pub = n.advertise<sensor_msgs::Imu>("imu_publisher", 10);
+	imu_pub = n.advertise<sensor_msgs::Imu>("imu_publisher", 10);
 
 	ros::Rate loop_rate(10);
 
@@ -370,7 +409,8 @@ int main(int argc, char *argv[])
 	// write labels for what data will be printed and associate the interrupt
 	// function to print data immediately after the header.
 	__print_header();
-	if(!silent_mode) rc_mpu_set_dmp_callback(&__print_data);
+	//if(!silent_mode) rc_mpu_set_dmp_callback(&__print_data);
+	if(!silent_mode) rc_mpu_set_dmp_callback(&__pub_data);
 	//now just wait, print_data() will be called by the interrupt
 	while(running)	rc_usleep(100000);
 

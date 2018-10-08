@@ -156,7 +156,7 @@ static void __pub_data(void)
         imu_msg.orientation.z = data.fused_quat[QUAT_Z];
         imu_msg.orientation.w = data.fused_quat[QUAT_W];
 
-	// TODO convertion to required unit
+	// TODO convertion to rad/s
         imu_msg.angular_velocity.x = data.gyro[0];
         imu_msg.angular_velocity.y = data.gyro[1];
         imu_msg.angular_velocity.z = data.gyro[2];
@@ -164,6 +164,16 @@ static void __pub_data(void)
         imu_msg.linear_acceleration.x = data.accel[0];
         imu_msg.linear_acceleration.y = data.accel[1];
         imu_msg.linear_acceleration.z = data.accel[2];
+
+	imu_msg.orientation_covariance[0] = 0;
+	imu_msg.orientation_covariance[1] = 0;
+	imu_msg.orientation_covariance[2] = 0;
+	imu_msg.orientation_covariance[3] = 0;
+	imu_msg.orientation_covariance[4] = 0;
+	imu_msg.orientation_covariance[5] = 0;
+	imu_msg.orientation_covariance[6] = 0;
+	imu_msg.orientation_covariance[7] = 0;
+        imu_msg.orientation_covariance[8] = 0;
 
 	imu_pub.publish(imu_msg);
 
@@ -386,12 +396,12 @@ int main(int argc, char *argv[])
 	*/
 
 	ros::init(argc, argv, "imu_pub_node");
-	ros::NodeHandle n;
+	ros::NodeHandle n("imu");
 	n.param<std::string>("frame_id", imu_frame_id_, "imu_link");
 	ROS_INFO("FrameID: %s",imu_frame_id_.c_str());
 
 	//ros::Publisher imu_pub = n.advertise<sensor_msgs::Imu>("imu_publisher", 10);
-	imu_pub = n.advertise<sensor_msgs::Imu>("imu_publisher", 10);
+	imu_pub = n.advertise<sensor_msgs::Imu>("data", 1, false);
 
 	ros::Rate loop_rate(10);
 

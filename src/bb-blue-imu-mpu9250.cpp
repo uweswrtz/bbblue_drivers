@@ -349,7 +349,7 @@ int main(int argc, char *argv[])
 
 	*/
 
-	ros::init(argc, argv, "bb_blue_imu_publisher");
+	ros::init(argc, argv, "imu_pub_node");
 	ros::NodeHandle n;
 
 	ros::Publisher imu_pub = n.advertise<sensor_msgs::Imu>("imu_publisher", 10);

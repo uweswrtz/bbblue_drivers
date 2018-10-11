@@ -32,10 +32,12 @@
 
 #include <rc/motor.h>
 
+ros::Time msg_received = ros::Time::now();
+
 // %Tag(CALLBACK)%
 void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
 {
-
+  msg_received = ros::Time::now();
   ROS_INFO("cmd_vel Linear: [%f, %f, %f] Angular: [%f, %f, %f]", cmd_vel->linear.x, cmd_vel->linear.y, cmd_vel->linear.z, cmd_vel->angular.x, cmd_vel->angular.y, cmd_vel->angular.z);
 
   double dx = cmd_vel->linear.x;
@@ -94,7 +96,7 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
         ROS_INFO("Stopping");
       //  stop()
   */
-  
+
 }
 // %EndTag(CALLBACK)%
 
@@ -120,9 +122,13 @@ int main(int argc, char **argv)
   ros::NodeHandle n;
 
   // initialize hardware first
-  int freq_hz = RC_MOTOR_DEFAULT_PWM_FREQ;
-  if(rc_motor_init_freq(freq_hz)) return -1;
-  ROS_INFO("Initialize motor okay");
+  int pwm_freq_hz = RC_MOTOR_DEFAULT_PWM_FREQ; //25000
+  if(rc_motor_init_freq(freq_hz))
+  {
+     ROS_ERROR("Initialize motor with [%d]: FAILED");
+     return -1;
+  }
+  ROS_INFO("Initialize motor with [%d]: OK");
   /**
    * The subscribe() call is how you tell ROS that you want to receive messages
    * on a given topic.  This invokes a call to the ROS
@@ -149,7 +155,21 @@ int main(int argc, char **argv)
    * will exit when Ctrl-C is pressed, or the node is shutdown by the master.
    */
 // %Tag(SPIN)%
-  ros::spin();
+  //ros::spin();
+  ros::Rate r(10);
+  while (ros::ok())
+  {
+    ros::spinOnce();
+
+    if ( ( ros::Time::now().toSec() - msg_received.toSec() ) > 0.25 )
+    {
+      ROS_INFO("No cmd_vel received: setting motors to 0");
+      rc_motor_set(0,0);
+    }
+    r.sleep();
+  }
+
+
 // %EndTag(SPIN)%
 
   ROS_INFO("Calling rc_motor_cleanup()");

@@ -44,7 +44,7 @@ static int show_temp  = 0;
 static int show_quat  = 1;
 static int show_tb = 0;
 static int orientation_menu = 0;
-static int sample_rate = 10; //sample_rate must be between 4 & 200
+static int sample_rate = 4; //sample_rate must be between 4 & 200
 static int priority;
 static rc_mpu_data_t data;
 
@@ -308,7 +308,6 @@ rc_mpu_orientation_t __orientation_prompt(){
  */
 int main(int argc, char *argv[])
 {
-	int c, sample_rate, priority;
 	int show_something = 0; // set to 1 when any show data option is given.
 
 	// start with default config and modify based on options
@@ -321,7 +320,7 @@ int main(int argc, char *argv[])
 	conf.dmp_fetch_accel_gyro=1;
 	conf.dmp_sample_rate = sample_rate;
 
- // priority option
+ 	// priority option
 	//conf.dmp_interrupt_priority = priority;
 	//conf.dmp_interrupt_sched_policy = SCHED_FIFO;
 

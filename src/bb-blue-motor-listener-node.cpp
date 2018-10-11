@@ -32,7 +32,7 @@
 
 #include <rc/motor.h>
 
-ros::Time msg_received = ros::Time::now();
+ros::Time msg_received;
 
 // %Tag(CALLBACK)%
 void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
@@ -121,14 +121,17 @@ int main(int argc, char **argv)
    */
   ros::NodeHandle n;
 
+  msg_received = ros::Time::now();
+
+	
   // initialize hardware first
   int pwm_freq_hz = RC_MOTOR_DEFAULT_PWM_FREQ; //25000
-  if(rc_motor_init_freq(freq_hz))
+  if(rc_motor_init_freq(pwm_freq_hz))
   {
-     ROS_ERROR("Initialize motor with [%d]: FAILED");
+     ROS_ERROR("Initialize motor with [%d]: FAILED", pwm_freq_hz);
      return -1;
   }
-  ROS_INFO("Initialize motor with [%d]: OK");
+  ROS_INFO("Initialize motor with [%d]: OK", pwm_freq_hz);
   /**
    * The subscribe() call is how you tell ROS that you want to receive messages
    * on a given topic.  This invokes a call to the ROS

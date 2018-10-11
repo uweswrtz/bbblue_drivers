@@ -32,12 +32,14 @@
 
 #include <rc/motor.h>
 
-ros::Time msg_received;
+// global variables
+ros::Time g_msg_received;
+bool g_driving = 0;
 
 // %Tag(CALLBACK)%
 void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
 {
-  msg_received = ros::Time::now();
+  g_msg_received = ros::Time::now();
   ROS_INFO("cmd_vel Linear: [%f, %f, %f] Angular: [%f, %f, %f]", cmd_vel->linear.x, cmd_vel->linear.y, cmd_vel->linear.z, cmd_vel->angular.x, cmd_vel->angular.y, cmd_vel->angular.z);
 
   double dx = cmd_vel->linear.x;
@@ -53,87 +55,40 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
 
   */
 
-
   double wb = 0.2; //wheel base
   double velocity_left = ( dx - dr * wb / 2.0);
   double velocity_right = ( dx + dr * wb / 2.0);
 
   ROS_INFO("set motor speed left: %f right: %f", velocity_left, velocity_right);
 
+  // TODO DUTY = INPUT/MAX
   rc_motor_set(1,velocity_left);
   rc_motor_set(2,velocity_right);
+  g_driving = 1;
 
-
-  /*
-  if cmd_vel->linear.x >0:
-        ROS_INFO("Driving forward");
-    //    forward(cmd_vel->linear.x)
-    //   rc_motor_set(m1,cmd_vel->linear.x);
-    //   rc_motor_set(m2,cmd_vel->linear.x);
-
-
-
-    elif cmd_vel->linear.x <0:
-        ROS_INFO("Driving backward");
-      //  backward(abs(cmd_vel->linear.x))
-      //   rc_motor_set(m1,cmd_vel->linear.x);
-      //   rc_motor_set(m2,cmd_vel->linear.x);
-
-    elif cmd_vel->angular.z > 0:
-        ROS_INFO("Turning left");
-      //  left(cmd_vel->angular.z)
-      //   rc_motor_set(m1,cmd_vel->linear.x);
-      //   rc_motor_set(m2,cmd_vel->linear.x);
-
-    elif cmd_vel->angular.z < 0:
-        ROS_INFO("Turning right");
-      //  right(abs(cmd_vel->angular.z))
-      //   rc_motor_set(m1,cmd_vel->linear.x);
-      //   rc_motor_set(m2,cmd_vel->linear.x);
-
-
-    else:
-        ROS_INFO("Stopping");
-      //  stop()
-  */
 
 }
 // %EndTag(CALLBACK)%
 
 int main(int argc, char **argv)
 {
-  /**
-   * The ros::init() function needs to see argc and argv so that it can perform
-   * any ROS arguments and name remapping that were provided at the command line.
-   * For programmatic remappings you can use a different version of init() which takes
-   * remappings directly, but for most command-line programs, passing argc and argv is
-   * the easiest way to do it.  The third argument to init() is the name of the node.
-   *
-   * You must call one of the versions of ros::init() before using any other
-   * part of the ROS system.
-   */
-  ros::init(argc, argv, "motor_listener_node");
 
-  /**
-   * NodeHandle is the main access point to communications with the ROS system.
-   * The first NodeHandle constructed will fully initialize this node, and the last
-   * NodeHandle destructed will close down the node.
-   */
+  // ROS and node initialize
+  ros::init(argc, argv, "diff_motor_driver");
+
   ros::NodeHandle n;
 
-<<<<<<< HEAD
-  msg_received = ros::Time::now();
+  g_msg_received = ros::Time::now();
 
-	
-=======
+  // get parameter
+
   int cmd_vel_timeout_;
-	std::string base_frame_id_;
+  std::string base_frame_id_;
 
-	n.param("cmd_vel_timeout", cmd_vel_timeout_, 10);
-	n.param<std::string>("base_frame_id", base_frame_id_, "base_link");
+  n.param("cmd_vel_timeout", cmd_vel_timeout_, 10);
+  n.param<std::string>("base_frame_id", base_frame_id_, "base_link");
 
->>>>>>> refs/remotes/origin/master
-  // initialize hardware first
+  // initialize motor hardware first
   int pwm_freq_hz = RC_MOTOR_DEFAULT_PWM_FREQ; //25000
   if(rc_motor_init_freq(pwm_freq_hz))
   {
@@ -141,42 +96,27 @@ int main(int argc, char **argv)
      return -1;
   }
   ROS_INFO("Initialize motor with [%d]: OK", pwm_freq_hz);
-  /**
-   * The subscribe() call is how you tell ROS that you want to receive messages
-   * on a given topic.  This invokes a call to the ROS
-   * master node, which keeps a registry of who is publishing and who
-   * is subscribing.  Messages are passed to a callback function, here
-   * called chatterCallback.  subscribe() returns a Subscriber object that you
-   * must hold on to until you want to unsubscribe.  When all copies of the Subscriber
-   * object go out of scope, this callback will automatically be unsubscribed from
-   * this topic.
-   *
-   * The second parameter to the subscribe() function is the size of the message
-   * queue.  If messages are arriving faster than they are being processed, this
-   * is the number of messages that will be buffered up before beginning to throw
-   * away the oldest ones.
-   */
+
+
 // %Tag(SUBSCRIBER)%
   ros::Subscriber sub = n.subscribe("cmd_vel", 100, cmd_velCallback);
 
 // %EndTag(SUBSCRIBER)%
+
   ROS_INFO("Node is up and Subsciber started");
-  /**
-   * ros::spin() will enter a loop, pumping callbacks.  With this version, all
-   * callbacks will be called from within this thread (the main one).  ros::spin()
-   * will exit when Ctrl-C is pressed, or the node is shutdown by the master.
-   */
+
 // %Tag(SPIN)%
-  //ros::spin();
+
   ros::Rate r(10);
   while (ros::ok())
   {
     ros::spinOnce();
 
-    if ( ( ros::Time::now().toSec() - msg_received.toSec() ) > cmd_vel_timeout_ )
+    if ( g_driving && ( ros::Time::now().toSec() - g_msg_received.toSec() ) > cmd_vel_timeout_ )
     {
-      ROS_INFO("No cmd_vel received: setting motors to 0");
+      ROS_INFO("TIMEOUT: No cmd_vel received: setting motors to 0");
       rc_motor_set(0,0);
+      g_driving = 0;
     }
     r.sleep();
   }
@@ -184,6 +124,7 @@ int main(int argc, char **argv)
 
 // %EndTag(SPIN)%
 
+// close motor hardware
   ROS_INFO("Calling rc_motor_cleanup()");
   rc_motor_cleanup();
   return 0;

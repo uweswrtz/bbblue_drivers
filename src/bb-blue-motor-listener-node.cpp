@@ -121,6 +121,12 @@ int main(int argc, char **argv)
    */
   ros::NodeHandle n;
 
+  int cmd_vel_timeout_;
+	std::string base_frame_id_;
+
+	n.param("cmd_vel_timeout", cmd_vel_timeout_, 10);
+	n.param<std::string>("base_frame_id", base_frame_id_, "base_link");
+
   // initialize hardware first
   int pwm_freq_hz = RC_MOTOR_DEFAULT_PWM_FREQ; //25000
   if(rc_motor_init_freq(freq_hz))
@@ -161,7 +167,7 @@ int main(int argc, char **argv)
   {
     ros::spinOnce();
 
-    if ( ( ros::Time::now().toSec() - msg_received.toSec() ) > 0.25 )
+    if ( ( ros::Time::now().toSec() - msg_received.toSec() ) > cmd_vel_timeout_ )
     {
       ROS_INFO("No cmd_vel received: setting motors to 0");
       rc_motor_set(0,0);

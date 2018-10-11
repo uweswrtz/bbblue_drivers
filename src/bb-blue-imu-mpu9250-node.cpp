@@ -1,13 +1,16 @@
 /**
- * @file rc_test_dmp.c
- * @example    rc_test_dmp
- *
- * @brief      serves as an example of how to use the MPU in DMP mode
+ * @file bb-blue-imu-mpu9250-node.cpp
  *
  *
+ * @brief     node to publish IMU data from MPU9250 on Beaglbone Blue
+ *            based on the rc_test_dmp.c example from librobotcontrol
+ *						by James Strawson
  *
- * @author     James Strawson
- * @date       1/29/2018
+ *
+ *
+ *
+ * @author    usxbrix
+ * @date      Oct 2018
  */
 
 
@@ -35,12 +38,14 @@ static int running = 0;
 static int silent_mode = 0;
 static int show_accel = 1;
 static int show_gyro  = 1;
-static int enable_mag = 0;
-static int show_compass = 0;
+static int enable_mag = 1;
+static int show_compass = 1;
 static int show_temp  = 0;
 static int show_quat  = 1;
 static int show_tb = 0;
 static int orientation_menu = 0;
+static int sample_rate = 10; //sample_rate must be between 4 & 200
+static int priority;
 static rc_mpu_data_t data;
 
 // local functions
@@ -82,7 +87,7 @@ static void __print_usage(void)
 }
 
 /**
- * This is the IMU interrupt function.
+ * This is the IMU interrupt function to print data.
  */
 static void __print_data(void)
 {
@@ -139,33 +144,31 @@ static void __print_data(void)
 
 
 /**
- * This is the IMU interrupt function.
+ * This is the IMU interrupt function to publish data.
  */
 static void __pub_data(void)
 {
-     //publish IMU data
-     //
-     //
+
 	sensor_msgs::Imu imu_msg;
 
 	ros::Time current_time = ros::Time::now();
 
-      	imu_msg.header.stamp = current_time;
-        imu_msg.header.frame_id = imu_frame_id_;
-        imu_msg.orientation.x = data.fused_quat[QUAT_X];
-        imu_msg.orientation.y = data.fused_quat[QUAT_Y];
-        imu_msg.orientation.z = data.fused_quat[QUAT_Z];
-        imu_msg.orientation.w = data.fused_quat[QUAT_W];
+	imu_msg.header.stamp = current_time;
+	imu_msg.header.frame_id = imu_frame_id_;
+	imu_msg.orientation.x = data.fused_quat[QUAT_X];
+  imu_msg.orientation.y = data.fused_quat[QUAT_Y];
+	imu_msg.orientation.z = data.fused_quat[QUAT_Z];
+  imu_msg.orientation.w = data.fused_quat[QUAT_W];
 
-        imu_msg.angular_velocity.x = data.gyro[0]*3.14159265358979323846/180;
-        imu_msg.angular_velocity.y = data.gyro[1]*3.14159265358979323846/180;
-        imu_msg.angular_velocity.z = data.gyro[2]*3.14159265358979323846/180;
+  imu_msg.angular_velocity.x = data.gyro[0]*3.14159265358979323846/180;
+  imu_msg.angular_velocity.y = data.gyro[1]*3.14159265358979323846/180;
+  imu_msg.angular_velocity.z = data.gyro[2]*3.14159265358979323846/180;
 
-        imu_msg.linear_acceleration.x = data.accel[0];
-        imu_msg.linear_acceleration.y = data.accel[1];
-        imu_msg.linear_acceleration.z = data.accel[2];
+  imu_msg.linear_acceleration.x = data.accel[0];
+  imu_msg.linear_acceleration.y = data.accel[1];
+  imu_msg.linear_acceleration.z = data.accel[2];
 
-	
+	// TODO: proper covariance
 	imu_msg.orientation_covariance[0] = 0;
 	imu_msg.orientation_covariance[1] = 0;
 	imu_msg.orientation_covariance[2] = 0;
@@ -174,19 +177,22 @@ static void __pub_data(void)
 	imu_msg.orientation_covariance[5] = 0;
 	imu_msg.orientation_covariance[6] = 0;
 	imu_msg.orientation_covariance[7] = 0;
-        imu_msg.orientation_covariance[8] = 0;
-	
+  imu_msg.orientation_covariance[8] = 0;
+
+	// TODO: covariance for velocities
 
 	imu_pub.publish(imu_msg);
 
 	sensor_msgs::MagneticField mag_msg;
-    	mag_msg.header = imu_msg.header;
+  mag_msg.header = imu_msg.header;
 
 	mag_msg.magnetic_field.x = data.mag[0]/1000000;
 	mag_msg.magnetic_field.y = data.mag[1]/1000000;
 	mag_msg.magnetic_field.z = data.mag[2]/1000000;
 
-        mag_pub.publish(mag_msg);
+	// TODO: covariance for magnetic field
+
+  mag_pub.publish(mag_msg);
 
 	return;
 
@@ -311,94 +317,21 @@ int main(int argc, char *argv[])
 	conf.gpio_interrupt_pin_chip = GPIO_INT_PIN_CHIP;
 	conf.gpio_interrupt_pin = GPIO_INT_PIN_PIN;
 
-	conf.enable_magnetometer = 1;
+	conf.enable_magnetometer = enable_mag;
 	conf.dmp_fetch_accel_gyro=1;
-	conf.dmp_sample_rate = 10;
+	conf.dmp_sample_rate = sample_rate;
 
+ // priority option
+	//conf.dmp_interrupt_priority = priority;
+	//conf.dmp_interrupt_sched_policy = SCHED_FIFO;
 
+	// magnetometer option
+	//	conf.read_mag_after_callback = 0;
 
-	// parse arguments
+	// print warnings
+	// conf.show_warnings=1;
+
 	/*
-	opterr = 0;
-	while ((c=getopt(argc, argv, "sr:mbagrqTtcp:hwo"))!=-1 && argc>1){
-		switch (c){
-		case 's':
-			silent_mode = 1;
-			show_something = 1;
-			break;
-		case 'r': // sample rate option
-			sample_rate = atoi(optarg);
-			if(sample_rate>200 || sample_rate<4){
-				printf("sample_rate must be between 4 & 200");
-				return -1;
-			}
-			conf.dmp_sample_rate = sample_rate;
-			break;
-		case 'p': // priority option
-			priority = atoi(optarg);
-			conf.dmp_interrupt_priority = priority;
-			conf.dmp_interrupt_sched_policy = SCHED_FIFO;
-			break;
-		case 'm': // magnetometer option
-			show_something = 1;
-			enable_mag = 1;
-			conf.enable_magnetometer = 1;
-			break;
-		case 'b': // magnetometer option
-			conf.read_mag_after_callback = 0;
-			break;
-		case 'c': // compass option
-			show_something = 1;
-			enable_mag = 1;
-			show_compass = 1;
-			conf.enable_magnetometer = 1;
-			break;
-		case 'a': // show accelerometer option
-			show_something = 1;
-			show_accel = 1;
-			conf.dmp_fetch_accel_gyro=1;
-			break;
-		case 'g': // show gyro option
-			show_something = 1;
-			show_gyro = 1;
-			conf.dmp_fetch_accel_gyro=1;
-			break;
-		case 'q': // show quaternion option
-			show_something = 1;
-			show_quat = 1;
-			break;
-		case 't': // show TaitBryan angle option
-			show_something = 1;
-			show_tb = 1;
-			break;
-		case 'T': // read thermometer option
-			show_something = 1;
-			show_temp = 1;
-			break;
-		case 'w': // print warnings
-			conf.show_warnings=1;
-			break;
-		case 'o': // let user select imu orientation
-			orientation_menu=1;
-			break;
-		case 'h': // show help option
-			__print_usage();
-			return -1;
-			break;
-		default:
-			printf("opt: %c\n",c);
-			printf("invalid argument\n");
-			__print_usage();
-			return -1;
-			break;
-		}
-	}
-	// user didn't give an option to show anything. Print warning and return.
-	if(show_something==0){
-		__print_usage();
-		printf("please enable an option to print some data\n");
-		return -1;
-	}
 	// If the user gave the -o option to select an orientation then prompt them
 	if(orientation_menu){
 		conf.orient=__orientation_prompt();

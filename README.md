@@ -13,3 +13,5 @@ some ROS nodes for the Beaglbone Blue
 
 rosrun imu_filter_madgwick imu_filter_node
 rosrun tf static_transform_publisher 0.0 0.0 0.0 0 0 0 map imu_link 10
+
+red - x green - y blue -z 

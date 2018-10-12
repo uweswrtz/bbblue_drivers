@@ -10,7 +10,13 @@ some ROS nodes for the Beaglbone Blue
 
 ## Differential Motor Driver
 
+### Parameter
+
+* left_motor = default:1
+* right_motor = default:2
+
 `rosrun ros-blue diff_motor_driver`
+`rosrun ros-blue diff_motor_driver _left_motor:=3 _right_motor:=4`
 
 Publish to cmd_vel manually
 

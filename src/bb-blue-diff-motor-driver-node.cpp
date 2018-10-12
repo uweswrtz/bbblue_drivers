@@ -32,11 +32,18 @@
 
 #include <rc/motor.h>
 
+#include <tf/transform_broadcaster.h>
+#include <nav_msgs/Odometry.h>
+
 // global variables
 ros::Time g_msg_received;
 bool g_driving = 0;
 int g_left_motor;
 int g_right_motor;
+
+double vx = 0;
+double vy = 0;
+double vth = 0;
 
 // %Tag(CALLBACK)%
 void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
@@ -47,6 +54,10 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
   double dx = cmd_vel->linear.x;
   double dr = cmd_vel->angular.z;
   double dy = cmd_vel->linear.y;
+
+  vx = dx;
+  vy = dy;
+  vth = dr;
 
   /*
   velocity_left_cmd = (linear_velocity – angular_velocity * WHEEL_BASE / 2.0)/WHEEL_RADIUS;
@@ -109,13 +120,25 @@ int main(int argc, char **argv)
   }
   ROS_INFO("Initialize motor %d and %d with %d: OK", g_left_motor, g_right_motor, pwm_freq_hz);
 
+  //odometry Publisher
+  ros::Publisher odom_pub = n.advertise<nav_msgs::Odometry>("odom", 50);
+  tf::TransformBroadcaster odom_broadcaster;
+
 
 // %Tag(SUBSCRIBER)%
   ros::Subscriber sub = n.subscribe("cmd_vel", 100, cmd_velCallback);
 
+  double x = 0.0;
+  double y = 0.0;
+  double th = 0.0;
+
 // %EndTag(SUBSCRIBER)%
 
   ROS_INFO("Node is up and Subsciber started");
+
+  ros::Time current_time, last_time;
+  current_time = ros::Time::now();
+  last_time = ros::Time::now();
 
 // %Tag(SPIN)%
 
@@ -124,12 +147,66 @@ int main(int argc, char **argv)
   {
     ros::spinOnce();
 
+    current_time = ros::Time::now();
+
+    //stopping motor when no message received within timeout
     if ( g_driving && ( ros::Time::now().toSec() - g_msg_received.toSec() ) > cmd_vel_timeout_ )
     {
       ROS_INFO("TIMEOUT: No cmd_vel received: setting motors to 0");
       rc_motor_set(0,0);
       g_driving = 0;
     }
+
+    //compute odometry in a typical way given the velocities of the robot
+    double dt = (current_time - last_time).toSec();
+    double delta_x = (vx * cos(th) - vy * sin(th)) * dt;
+    double delta_y = (vx * sin(th) + vy * cos(th)) * dt;
+    double delta_th = vth * dt;
+
+    x += delta_x;
+        y += delta_y;
+        th += delta_th;
+
+        //since all odometry is 6DOF we'll need a quaternion created from yaw
+        geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(th);
+
+        //first, we'll publish the transform over tf
+        geometry_msgs::TransformStamped odom_trans;
+        odom_trans.header.stamp = current_time;
+        odom_trans.header.frame_id = "odom";
+        odom_trans.child_frame_id = "base_link";
+
+        odom_trans.transform.translation.x = x;
+        odom_trans.transform.translation.y = y;
+        odom_trans.transform.translation.z = 0.0;
+        odom_trans.transform.rotation = odom_quat;
+
+        //send the transform
+        odom_broadcaster.sendTransform(odom_trans);
+
+        //next, we'll publish the odometry message over ROS
+        nav_msgs::Odometry odom;
+        odom.header.stamp = current_time;
+        odom.header.frame_id = "odom";
+
+        //set the position
+        odom.pose.pose.position.x = x;
+        odom.pose.pose.position.y = y;
+        odom.pose.pose.position.z = 0.0;
+        odom.pose.pose.orientation = odom_quat;
+
+        //set the velocity
+        odom.child_frame_id = "base_link";
+        odom.twist.twist.linear.x = vx;
+        odom.twist.twist.linear.y = vy;
+        odom.twist.twist.angular.z = vth;
+
+        //publish the message
+        odom_pub.publish(odom);
+
+        last_time = current_time;
+
+
     r.sleep();
   }
 

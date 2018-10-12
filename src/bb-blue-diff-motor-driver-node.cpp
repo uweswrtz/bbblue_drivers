@@ -35,6 +35,8 @@
 // global variables
 ros::Time g_msg_received;
 bool g_driving = 0;
+int g_left_motor;
+int g_right_motor;
 
 // %Tag(CALLBACK)%
 void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
@@ -62,8 +64,8 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
   ROS_INFO("set motor speed left: %f right: %f", velocity_left, velocity_right);
 
   // TODO DUTY = INPUT/MAX
-  rc_motor_set(1,velocity_left);
-  rc_motor_set(2,velocity_right);
+  rc_motor_set(g_left_motor,velocity_left);
+  rc_motor_set(g_right_motor,velocity_right);
   g_driving = 1;
 
 
@@ -86,16 +88,26 @@ int main(int argc, char **argv)
   std::string base_frame_id_;
 
   n.param("cmd_vel_timeout", cmd_vel_timeout_, 10);
+  ros::param::param("~left_motor", g_left_motor, 1);
+  ros::param::param("~right_motor", g_right_motor, 2);
+
+  if(g_left_motor < 1 or g_left_motor > 4 )
+  {
+     ROS_ERROR("ERROR: Wrong parameter: left_motor/right_motor must be between 1-4");
+     return -1;
+  }
+
   n.param<std::string>("base_frame_id", base_frame_id_, "base_link");
+  //TODO: motor parameter
 
   // initialize motor hardware first
   int pwm_freq_hz = RC_MOTOR_DEFAULT_PWM_FREQ; //25000
   if(rc_motor_init_freq(pwm_freq_hz))
   {
-     ROS_ERROR("Initialize motor with [%d]: FAILED", pwm_freq_hz);
+     ROS_ERROR("Initialize motor %d and %d with %d: FAILED", g_left_motor, g_right_motor, pwm_freq_hz);
      return -1;
   }
-  ROS_INFO("Initialize motor with [%d]: OK", pwm_freq_hz);
+  ROS_INFO("Initialize motor %d and %d with %d: OK", g_left_motor, g_right_motor, pwm_freq_hz);
 
 
 // %Tag(SUBSCRIBER)%

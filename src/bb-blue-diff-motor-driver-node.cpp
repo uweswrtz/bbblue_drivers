@@ -39,7 +39,7 @@ int g_left_motor;   // param default 1
 int g_right_motor;  // param default 2
 double g_maxspeed;  // param default 0.4
 double g_minspeed;  // param default 0.1
-double g_rotspeed;  // param default 1
+double g_turnspeed;  // param default 1
 double g_wheelbase; // param default 0.2
 
 // %Tag(CALLBACK)%
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
   ros::param::param("~maxspeed", g_maxspeed, 0.4);
   ros::param::param("~minspeed", g_minspeed, 0.1);
   ros::param::param("~wheelbase", g_wheelbase, 0.2);
-  ros::param::param("~turnspeed", g_rotspeed, 1);
+  ros::param::param("~turnspeed", g_turnspeed, 1);
 
 
   if(g_left_motor < 1 or g_left_motor > 4 or g_right_motor < 1 or g_right_motor > 4 )

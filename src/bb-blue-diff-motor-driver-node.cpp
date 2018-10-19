@@ -37,6 +37,10 @@ ros::Time g_msg_received;
 bool g_driving = 0;
 int g_left_motor;
 int g_right_motor;
+double g_maxspeed = 0.364;
+double g_minspeed = 0.137;
+double g_rotspeed = 2;
+double g_wheelbase = 0.2;
 
 // %Tag(CALLBACK)%
 void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
@@ -47,7 +51,13 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
   double dx = cmd_vel->linear.x;
   double dr = cmd_vel->angular.z;
   double dy = cmd_vel->linear.y;
-
+  
+  if( dx > g_maxspeed )
+  {
+    dx = g_maxspeed;
+    ROS_INFO("Velocity %f larger than %f! Limiting speed to %.", dx, g_maxspeed, dx);  
+  }
+  
   /*
   velocity_left_cmd = (linear_velocity – angular_velocity * WHEEL_BASE / 2.0)/WHEEL_RADIUS;
   velocity_right_cmd = (linear_velocity + angular_velocity * WHEEL_BASE / 2.0)/WHEEL_RADIUS;
@@ -57,7 +67,7 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
 
   */
 
-  double wb = 0.2; //wheel base
+  double wb = g_wheelbase; //wheel base
   double velocity_left = ( dx - dr * wb / 2.0);
   double velocity_right = ( dx + dr * wb / 2.0);
 
@@ -84,14 +94,17 @@ int main(int argc, char **argv)
 
   // get parameter
 
-  int cmd_vel_timeout_;
+  int cmd_vel_timeout;
   std::string base_frame_id_;
 
-  n.param("cmd_vel_timeout", cmd_vel_timeout_, 10);
+  n.param("~timeout", cmd_vel_timeout, 5);
   ros::param::param("~left_motor", g_left_motor, 1);
   ros::param::param("~right_motor", g_right_motor, 2);
+  ros::param::param("~maxspeed", g_maxspeed, 1);
+  ros::param::param("~minspeed", g_minspeed, 2);
+  ros::param::param("~wheelbase", g_wheelbase, 0.2);
 
-  if(g_left_motor < 1 or g_left_motor > 4 )
+  if(g_left_motor < 1 or g_left_motor > 4 or g_right_motor < 1 or g_right_motor > 4 )
   {
      ROS_ERROR("ERROR: Wrong parameter: left_motor/right_motor must be between 1-4");
      return -1;
@@ -124,7 +137,7 @@ int main(int argc, char **argv)
   {
     ros::spinOnce();
 
-    if ( g_driving && ( ros::Time::now().toSec() - g_msg_received.toSec() ) > cmd_vel_timeout_ )
+    if ( g_driving && ( ros::Time::now().toSec() - g_msg_received.toSec() ) > cmd_vel_timeout )
     {
       ROS_INFO("TIMEOUT: No cmd_vel received: setting motors to 0");
       rc_motor_set(0,0);

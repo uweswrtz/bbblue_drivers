@@ -35,12 +35,12 @@
 // global variables
 ros::Time g_msg_received;
 bool g_driving = 0;
-int g_left_motor;
-int g_right_motor;
-double g_maxspeed = 0.364;
-double g_minspeed = 0.137;
-double g_rotspeed = 2;
-double g_wheelbase = 0.2;
+int g_left_motor;   // param default 1
+int g_right_motor;  // param default 2
+double g_maxspeed;  // param default 0.4
+double g_minspeed;  // param default 0.1
+double g_rotspeed;  // param default 1
+double g_wheelbase; // param default 0.2
 
 // %Tag(CALLBACK)%
 void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
@@ -51,13 +51,13 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
   double dx = cmd_vel->linear.x;
   double dr = cmd_vel->angular.z;
   double dy = cmd_vel->linear.y;
-  
+
   if( dx > g_maxspeed )
   {
     dx = g_maxspeed;
-    ROS_INFO("Velocity %f larger than %f! Limiting speed to %.", dx, g_maxspeed, dx);  
+    ROS_INFO("Velocity %f larger than %f! Limiting speed to %.", dx, g_maxspeed, dx);
   }
-  
+
   /*
   velocity_left_cmd = (linear_velocity – angular_velocity * WHEEL_BASE / 2.0)/WHEEL_RADIUS;
   velocity_right_cmd = (linear_velocity + angular_velocity * WHEEL_BASE / 2.0)/WHEEL_RADIUS;
@@ -73,7 +73,7 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
 
   ROS_INFO("set motor speed left: %f right: %f", velocity_left, velocity_right);
 
-  // TODO DUTY = INPUT/MAX
+  // TODO DUTY = 2.2 * INPUT
   rc_motor_set(g_left_motor,velocity_left);
   rc_motor_set(g_right_motor,velocity_right);
   g_driving = 1;
@@ -100,9 +100,11 @@ int main(int argc, char **argv)
   n.param("~timeout", cmd_vel_timeout, 5);
   ros::param::param("~left_motor", g_left_motor, 1);
   ros::param::param("~right_motor", g_right_motor, 2);
-  ros::param::param("~maxspeed", g_maxspeed, 0.5);
-  ros::param::param("~minspeed", g_minspeed, 0.5);
+  ros::param::param("~maxspeed", g_maxspeed, 0.4);
+  ros::param::param("~minspeed", g_minspeed, 0.1);
   ros::param::param("~wheelbase", g_wheelbase, 0.2);
+  ros::param::param("~turnspeed", g_rotspeed, 1);
+
 
   if(g_left_motor < 1 or g_left_motor > 4 or g_right_motor < 1 or g_right_motor > 4 )
   {

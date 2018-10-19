@@ -55,7 +55,7 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
   if( dx > g_maxspeed )
   {
     dx = g_maxspeed;
-    ROS_INFO("Velocity %f larger than %f! Limiting speed to %.", dx, g_maxspeed, dx);
+    ROS_INFO("Velocity %f larger than %f! Limiting speed to %f.", dx, g_maxspeed, dx);
   }
 
   /*
@@ -74,8 +74,10 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
   ROS_INFO("set motor speed left: %f right: %f", velocity_left, velocity_right);
 
   // TODO DUTY = 2.2 * INPUT
-  rc_motor_set(g_left_motor,velocity_left);
-  rc_motor_set(g_right_motor,velocity_right);
+  double duty_left = 2.2 * velocity_left;
+  double duty_right = 2.2 * velocity_right;
+  rc_motor_set(g_left_motor,duty_left);
+  rc_motor_set(g_right_motor,duty_right);
   g_driving = 1;
 
 
@@ -97,13 +99,14 @@ int main(int argc, char **argv)
   int cmd_vel_timeout;
   std::string base_frame_id_;
 
-  n.param("~timeout", cmd_vel_timeout, 5);
+  //n.param("~timeout", cmd_vel_timeout, 5);
+  ros::param::param("~timeout", cmd_vel_timeout, 5);
   ros::param::param("~left_motor", g_left_motor, 1);
   ros::param::param("~right_motor", g_right_motor, 2);
   ros::param::param("~maxspeed", g_maxspeed, 0.4);
   ros::param::param("~minspeed", g_minspeed, 0.1);
   ros::param::param("~wheelbase", g_wheelbase, 0.2);
-  ros::param::param("~turnspeed", g_turnspeed, 1);
+  ros::param::param("~turnspeed", g_turnspeed, 1.0);
 
 
   if(g_left_motor < 1 or g_left_motor > 4 or g_right_motor < 1 or g_right_motor > 4 )

@@ -100,8 +100,8 @@ int main(int argc, char **argv)
   n.param("~timeout", cmd_vel_timeout, 5);
   ros::param::param("~left_motor", g_left_motor, 1);
   ros::param::param("~right_motor", g_right_motor, 2);
-  ros::param::param("~maxspeed", g_maxspeed, 1);
-  ros::param::param("~minspeed", g_minspeed, 2);
+  ros::param::param("~maxspeed", g_maxspeed, 0.5);
+  ros::param::param("~minspeed", g_minspeed, 0.5);
   ros::param::param("~wheelbase", g_wheelbase, 0.2);
 
   if(g_left_motor < 1 or g_left_motor > 4 or g_right_motor < 1 or g_right_motor > 4 )

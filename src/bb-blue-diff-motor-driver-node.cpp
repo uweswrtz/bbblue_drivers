@@ -92,6 +92,8 @@ int main(int argc, char **argv)
 
   ros::NodeHandle n;
 
+  ROS_INFO("Initializing node %s in namespace: %s", ros::this_node::getName().c_str(), ros::this_node::getNamespace().c_str() );
+
   g_msg_received = ros::Time::now();
 
   // get parameter
@@ -145,7 +147,12 @@ int main(int argc, char **argv)
     if ( g_driving && ( ros::Time::now().toSec() - g_msg_received.toSec() ) > cmd_vel_timeout )
     {
       ROS_INFO("TIMEOUT: No cmd_vel received: setting motors to 0");
-      rc_motor_set(0,0);
+
+      //looks like 0 for all motors doesn't work
+      //rc_motor_set(0,0);
+      rc_motor_set(g_left_motor,0);
+      rc_motor_set(g_right_motor,0);
+
       g_driving = 0;
     }
     r.sleep();

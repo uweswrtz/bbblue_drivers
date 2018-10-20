@@ -38,8 +38,12 @@
 // global variables
 ros::Time g_msg_received;
 bool g_driving = 0;
-int g_left_motor;
-int g_right_motor;
+int g_left_motor;   // param default 1
+int g_right_motor;  // param default 2
+double g_maxspeed;  // param default 0.4
+double g_minspeed;  // param default 0.1
+double g_turnspeed;  // param default 1
+double g_wheelbase; // param default 0.2
 
 double vx = 0;
 double vy = 0;
@@ -55,9 +59,17 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
   double dr = cmd_vel->angular.z;
   double dy = cmd_vel->linear.y;
 
+
   vx = dx;
   vy = dy;
   vth = dr;
+
+  if( dx > g_maxspeed )
+  {
+    dx = g_maxspeed;
+    ROS_INFO("Velocity %f larger than %f! Limiting speed to %f.", dx, g_maxspeed, dx);
+  }
+
 
   /*
   velocity_left_cmd = (linear_velocity – angular_velocity * WHEEL_BASE / 2.0)/WHEEL_RADIUS;
@@ -68,15 +80,17 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
 
   */
 
-  double wb = 0.2; //wheel base
+  double wb = g_wheelbase; //wheel base
   double velocity_left = ( dx - dr * wb / 2.0);
   double velocity_right = ( dx + dr * wb / 2.0);
 
   ROS_INFO("set motor speed left: %f right: %f", velocity_left, velocity_right);
 
-  // TODO DUTY = INPUT/MAX
-  rc_motor_set(g_left_motor,velocity_left);
-  rc_motor_set(g_right_motor,velocity_right);
+  // TODO DUTY = 2.2 * INPUT
+  double duty_left = 2.2 * velocity_left;
+  double duty_right = 2.2 * velocity_right;
+  rc_motor_set(g_left_motor,duty_left);
+  rc_motor_set(g_right_motor,duty_right);
   g_driving = 1;
 
 
@@ -91,18 +105,26 @@ int main(int argc, char **argv)
 
   ros::NodeHandle n;
 
+  ROS_INFO("Initializing node %s in namespace: %s", ros::this_node::getName().c_str(), ros::this_node::getNamespace().c_str() );
+
   g_msg_received = ros::Time::now();
 
   // get parameter
 
-  int cmd_vel_timeout_;
+  int cmd_vel_timeout;
   std::string base_frame_id_;
 
-  n.param("cmd_vel_timeout", cmd_vel_timeout_, 10);
+  //n.param("~timeout", cmd_vel_timeout, 5);
+  ros::param::param("~timeout", cmd_vel_timeout, 5);
   ros::param::param("~left_motor", g_left_motor, 1);
   ros::param::param("~right_motor", g_right_motor, 2);
+  ros::param::param("~maxspeed", g_maxspeed, 0.4);
+  ros::param::param("~minspeed", g_minspeed, 0.1);
+  ros::param::param("~wheelbase", g_wheelbase, 0.2);
+  ros::param::param("~turnspeed", g_turnspeed, 1.0);
 
-  if(g_left_motor < 1 or g_left_motor > 4 )
+
+  if(g_left_motor < 1 or g_left_motor > 4 or g_right_motor < 1 or g_right_motor > 4 )
   {
      ROS_ERROR("ERROR: Wrong parameter: left_motor/right_motor must be between 1-4");
      return -1;
@@ -147,13 +169,21 @@ int main(int argc, char **argv)
   {
     ros::spinOnce();
 
+
     current_time = ros::Time::now();
 
     //stopping motor when no message received within timeout
-    if ( g_driving && ( ros::Time::now().toSec() - g_msg_received.toSec() ) > cmd_vel_timeout_ )
+
+    if ( g_driving && ( ros::Time::now().toSec() - g_msg_received.toSec() ) > cmd_vel_timeout )
+
     {
       ROS_INFO("TIMEOUT: No cmd_vel received: setting motors to 0");
-      rc_motor_set(0,0);
+
+      //looks like 0 for all motors doesn't work
+      //rc_motor_set(0,0);
+      rc_motor_set(g_left_motor,0);
+      rc_motor_set(g_right_motor,0);
+
       g_driving = 0;
     }
 

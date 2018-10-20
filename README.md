@@ -12,11 +12,19 @@ some ROS nodes for the Beaglbone Blue
 
 ### Parameter
 
-* left_motor = default:1
-* right_motor = default:2
+* ~left_motor = 1
+* ~right_motor = 2
+* ~timeout = 5
+* ~maxspeed = 0.4
+* ~minspeed = 0.1
+* ~wheelbase = 0.2
+* ~turnspeed = 1
+
+### Run
 
 `rosrun ros-blue diff_motor_driver`
-`rosrun ros-blue diff_motor_driver _left_motor:=3 _right_motor:=4`
+
+`rosrun ros-blue diff_motor_driver _left_motor:=3 _right_motor:=4 _minspeed:=0.137 _maxspeed:=0.364`
 
 Publish to cmd_vel manually
 

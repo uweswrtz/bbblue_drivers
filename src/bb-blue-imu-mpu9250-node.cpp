@@ -49,8 +49,7 @@ static int priority;
 static rc_mpu_data_t data;
 
 // local functions
-static rc_mpu_orientation_t __orientation_prompt(void);
-static void __print_usage(void);
+
 static void __print_data(void);
 static void __print_header(void);
 
@@ -62,29 +61,7 @@ ros::Publisher mag_pub;
 std::string imu_frame_id_;
 
 
-/**
- * Printed if some invalid argument was given, or -h option given.
- */
-static void __print_usage(void)
-{
-	printf("\n Options\n");
-	printf("-r {rate}	Set sample rate in HZ (default 100)\n");
-	printf("		Sample rate must be a divisor of 200\n");
-	printf("-m		Enable Magnetometer\n");
-	printf("-b		Enable Reading Magnetometer before ISR (default after)\n");
-	printf("-c		Show raw compass angle\n");
-	printf("-a		Print Accelerometer Data\n");
-	printf("-g		Print Gyro Data\n");
-	printf("-T		Print Temperature\n");
-	printf("-t		Print TaitBryan Angles\n");
-	printf("-q		Print Quaternion Vector\n");
-	printf("-p {prio}	Set Interrupt Priority and FIFO scheduling policy (requires root)\n");
-	printf("-w		Print I2C bus warnings\n");
-	printf("-o		Show a menu to select IMU orientation\n");
-	printf("-h		Print this help message\n\n");
 
-	return;
-}
 
 /**
  * This is the IMU interrupt function to print data.
@@ -231,69 +208,6 @@ static void __signal_handler(__attribute__ ((unused)) int dummy)
 	return;
 }
 
-/**
- * If the user selects the -o option for orientation selection, this menu will
- * displayed to prompt the user for which orientation to use. It will return a
- * valid rc_mpu_orientation_t when a number 1-6 is given or quit when 'q' is
- * pressed. On other inputs the user will be allowed to enter again.
- *
- * @return     the orientation enum chosen by user
- */
- /*
-rc_mpu_orientation_t __orientation_prompt(){
-	int c;
-
-	printf("\n");
-	printf("Please select a number 1-6 corresponding to the\n");
-	printf("orientation you wish to use. Press 'q' to exit.\n\n");
-	printf(" 1: ORIENTATION_Z_UP\n");
-	printf(" 2: ORIENTATION_Z_DOWN\n");
-	printf(" 3: ORIENTATION_X_UP\n");
-	printf(" 4: ORIENTATION_X_DOWN\n");
-	printf(" 5: ORIENTATION_Y_UP\n");
-	printf(" 6: ORIENTATION_Y_DOWN\n");
-	printf(" 7: ORIENTATION_X_FORWARD\n");
-	printf(" 8: ORIENTATION_X_BACK\n");
-
-	while ((c = getchar()) != EOF){
-		switch(c){
-		case '1':
-			return ORIENTATION_Z_UP;
-			break;
-		case '2':
-			return ORIENTATION_Z_DOWN;
-			break;
-		case '3':
-			return ORIENTATION_X_UP;
-			break;
-		case '4':
-			return ORIENTATION_X_DOWN;
-			break;
-		case '5':
-			return ORIENTATION_Y_UP;
-			break;
-		case '6':
-			return ORIENTATION_Y_DOWN;
-			break;
-		case '7':
-			return ORIENTATION_X_FORWARD;
-			break;
-		case '8':
-			return ORIENTATION_X_BACK;
-			break;
-		case 'q':
-			printf("Quitting\n");
-			exit(0);
-		case '\n':
-			break;
-		default:
-			printf("invalid input\n");
-			break;
-		}
-	}
-	return 0;
-}
-*/
 
 /**
  * main() serves to parse user options, initialize the imu and interrupt

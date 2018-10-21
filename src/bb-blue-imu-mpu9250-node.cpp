@@ -107,18 +107,40 @@ static void __pub_data(void)
   imu_msg.linear_acceleration.y = data.accel[1];
   imu_msg.linear_acceleration.z = data.accel[2];
 
-	// TODO: proper covariance
-	imu_msg.orientation_covariance[0] = 0;
+	/**
+	 * covariances used from razor_imu_9dof
+	 * https://github.com/KristofRobot/razor_imu_9dof/blob/indigo-devel/nodes/imu_node.py
+	 */
+	imu_msg.orientation_covariance[0] = 0.0025 ;
 	imu_msg.orientation_covariance[1] = 0;
 	imu_msg.orientation_covariance[2] = 0;
 	imu_msg.orientation_covariance[3] = 0;
-	imu_msg.orientation_covariance[4] = 0;
+	imu_msg.orientation_covariance[4] = 0.0025 ;
 	imu_msg.orientation_covariance[5] = 0;
 	imu_msg.orientation_covariance[6] = 0;
 	imu_msg.orientation_covariance[7] = 0;
-  imu_msg.orientation_covariance[8] = 0;
+  imu_msg.orientation_covariance[8] = 0.0025 ;
 
-	// TODO: covariance for velocities
+	imu_msg.angular_velocity_covariance [0] = 0.02 ;
+	imu_msg.angular_velocity_covariance [1] = 0;
+	imu_msg.angular_velocity_covariance [2] = 0;
+	imu_msg.angular_velocity_covariance [3] = 0;
+	imu_msg.angular_velocity_covariance [4] = 0.02 ;
+	imu_msg.angular_velocity_covariance [5] = 0;
+	imu_msg.angular_velocity_covariance [6] = 0;
+	imu_msg.angular_velocity_covariance [7] = 0;
+	imu_msg.angular_velocity_covariance [8] = 0.02 ;
+
+	imu_msg.linear_acceleration_covariance[0] = 0.04 ;
+	imu_msg.linear_acceleration_covariance[1] = 0;
+	imu_msg.linear_acceleration_covariance[2] = 0;
+	imu_msg.linear_acceleration_covariance[3] = 0;
+	imu_msg.linear_acceleration_covariance[4] = 0.04 ;
+	imu_msg.linear_acceleration_covariance[5] = 0;
+	imu_msg.linear_acceleration_covariance[6] = 0;
+	imu_msg.linear_acceleration_covariance[7] = 0;
+	imu_msg.linear_acceleration_covariance[8] = 0.04 ;
+
 
 	imu_pub.publish(imu_msg);
 

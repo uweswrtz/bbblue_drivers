@@ -51,8 +51,6 @@ static rc_mpu_data_t data;
 // local functions
 
 static void __print_data(void);
-static void __print_header(void);
-
 static void __pub_data(void);
 
 
@@ -68,57 +66,21 @@ std::string imu_frame_id_;
  */
 static void __print_data(void)
 {
-	printf("\r");
-	printf(" ");
-
-	if(show_compass){
-		printf("   %6.1f   |", data.compass_heading_raw*RAD_TO_DEG);
-		printf("   %6.1f   |", data.compass_heading*RAD_TO_DEG);
-	}
-	if(show_quat && enable_mag){
-		// print fused quaternion
-		printf(" %4.1f %4.1f %4.1f %4.1f |",	data.fused_quat[QUAT_W], \
-							data.fused_quat[QUAT_X], \
-							data.fused_quat[QUAT_Y], \
-							data.fused_quat[QUAT_Z]);
-	}
-	else if(show_quat){
-		// print quaternion
-		printf(" %4.1f %4.1f %4.1f %4.1f |",	data.dmp_quat[QUAT_W], \
-							data.dmp_quat[QUAT_X], \
-							data.dmp_quat[QUAT_Y], \
-							data.dmp_quat[QUAT_Z]);
-	}
-	if(show_tb && enable_mag){
-		// print fused TaitBryan Angles
-		printf("%6.1f %6.1f %6.1f |",	data.fused_TaitBryan[TB_PITCH_X]*RAD_TO_DEG,\
-						data.fused_TaitBryan[TB_ROLL_Y]*RAD_TO_DEG,\
-						data.fused_TaitBryan[TB_YAW_Z]*RAD_TO_DEG);
-	}
-	else if(show_tb){
-		// print TaitBryan angles
-		printf("%6.1f %6.1f %6.1f |",	data.dmp_TaitBryan[TB_PITCH_X]*RAD_TO_DEG,\
-						data.dmp_TaitBryan[TB_ROLL_Y]*RAD_TO_DEG,\
-						data.dmp_TaitBryan[TB_YAW_Z]*RAD_TO_DEG);
-	}
-	if(show_accel){
-		printf(" %5.2f %5.2f %5.2f |",	data.accel[0],\
-						data.accel[1],\
-						data.accel[2]);
-	}
-	if(show_gyro){
-		printf(" %5.1f %5.1f %5.1f |",	data.gyro[0],\
-						data.gyro[1],\
-						data.gyro[2]);
-	}
-	if(show_temp){
-		rc_mpu_read_temp(&data);
-		printf(" %6.2f |", data.temp);
-	}
-	fflush(stdout);
+	ROS_INFO("Comp[raw]:%6.1f[%6.1f] Quat:%4.1f %4.1f %4.1f %4.1f Accel:%5.2f %5.2f %5.2f Gyro:%5.1f %5.1f %5.1f ", \
+	data.compass_heading*RAD_TO_DEG, \
+	data.compass_heading_raw*RAD_TO_DEG), \
+	data.fused_quat[QUAT_W], \
+	data.fused_quat[QUAT_X], \
+	data.fused_quat[QUAT_Y], \
+	data.fused_quat[QUAT_Z]), \
+	data.accel[0],\
+	data.accel[1],\
+	data.accel[2]),\
+	data.gyro[0],\
+	data.gyro[1],\
+	data.gyro[2]);
 	return;
 }
-
 
 /**
  * This is the IMU interrupt function to publish data.
@@ -174,30 +136,7 @@ static void __pub_data(void)
 	return;
 
 }
-/**
- * Based on which data is marked to be printed, print the correct labels. this
- * is printed only once and the actual data is updated on the next line.
- */
-static void __print_header(void)
-{
-	printf(" ");
-	if(show_compass){
-		printf("Raw Compass |");
-		printf("FilteredComp|");
-	}
-	if(enable_mag){
-		if(show_quat) printf("   Fused Quaternion  |");
-		if(show_tb) printf(" FusedTaitBryan(deg) |");
-	} else{
-		if(show_quat) printf("    DMP Quaternion   |");
-		if(show_tb) printf(" DMP TaitBryan (deg) |");
-	}
-	if(show_accel) printf(" Accel XYZ (m/s^2) |");
-	if(show_gyro)  printf("  Gyro XYZ (deg/s) |");
-	if(show_temp)  printf(" Temp(C)|");
 
-	printf("\n");
-}
 
 /**
  * @brief      interrupt handler to catch ctrl-c
@@ -275,9 +214,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 	ROS_INFO("MPU initialized");
-	// write labels for what data will be printed and associate the interrupt
-	// function to print data immediately after the header.
-	__print_header();
+
 	//if(!silent_mode) rc_mpu_set_dmp_callback(&__print_data);
 	if(!silent_mode) rc_mpu_set_dmp_callback(&__pub_data);
 	//now just wait, print_data() will be called by the interrupt

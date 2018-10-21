@@ -68,14 +68,14 @@ static void __print_data(void)
 {
 	ROS_INFO("Comp[raw]:%6.1f[%6.1f] Quat:%4.1f %4.1f %4.1f %4.1f Accel:%5.2f %5.2f %5.2f Gyro:%5.1f %5.1f %5.1f ", \
 	data.compass_heading*RAD_TO_DEG, \
-	data.compass_heading_raw*RAD_TO_DEG), \
+	data.compass_heading_raw*RAD_TO_DEG, \
 	data.fused_quat[QUAT_W], \
 	data.fused_quat[QUAT_X], \
 	data.fused_quat[QUAT_Y], \
-	data.fused_quat[QUAT_Z]), \
+	data.fused_quat[QUAT_Z], \
 	data.accel[0],\
 	data.accel[1],\
-	data.accel[2]),\
+	data.accel[2],\
 	data.gyro[0],\
 	data.gyro[1],\
 	data.gyro[2]);

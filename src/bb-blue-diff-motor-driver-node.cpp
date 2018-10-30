@@ -44,6 +44,7 @@ double g_maxspeed;  // param default 0.4
 double g_minspeed;  // param default 0.1
 double g_turnspeed;  // param default 1
 double g_wheelbase; // param default 0.2
+double g_duty_factor; // param default 2.0
 
 double vx = 0;
 double vy = 0;
@@ -72,6 +73,9 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
 
 
   /*
+  https://people.cs.umu.se/thomash/reports/KinematicsEquationsForDifferentialDriveAndArticulatedSteeringUMINF-11.19.pdf
+  http://robotsforroboticists.com/drive-kinematics/
+
   velocity_left_cmd = (linear_velocity – angular_velocity * WHEEL_BASE / 2.0)/WHEEL_RADIUS;
   velocity_right_cmd = (linear_velocity + angular_velocity * WHEEL_BASE / 2.0)/WHEEL_RADIUS;
 
@@ -87,8 +91,8 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
   ROS_INFO("set motor speed left: %f right: %f", velocity_left, velocity_right);
 
   // TODO DUTY = 2.2 * INPUT
-  double duty_left = 2.2 * velocity_left;
-  double duty_right = 2.2 * velocity_right;
+  double duty_left = g_duty_factor * velocity_left;
+  double duty_right = g_duty_factor * velocity_right;
   rc_motor_set(g_left_motor,duty_left);
   rc_motor_set(g_right_motor,duty_right);
   g_driving = 1;
@@ -122,6 +126,7 @@ int main(int argc, char **argv)
   ros::param::param("~minspeed", g_minspeed, 0.1);
   ros::param::param("~wheelbase", g_wheelbase, 0.2);
   ros::param::param("~turnspeed", g_turnspeed, 1.0);
+  ros::param::param("~duty_factor", g_duty_factor, 1.0);
 
 
   if(g_left_motor < 1 or g_left_motor > 4 or g_right_motor < 1 or g_right_motor > 4 )

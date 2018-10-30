@@ -19,12 +19,13 @@ some ROS nodes for the Beaglbone Blue
 * ~minspeed = 0.1
 * ~wheelbase = 0.2
 * ~turnspeed = 1
+* ~duty_factor = 1  - velocity to PWM duty cycle factor (simple linear approach)
 
 ### Run
 
 `rosrun ros-blue diff_motor_driver`
 
-`rosrun ros-blue diff_motor_driver _left_motor:=3 _right_motor:=4 _minspeed:=0.137 _maxspeed:=0.364`
+`rosrun ros-blue diff_motor_driver _left_motor:=3 _right_motor:=4 _minspeed:=0.137 _maxspeed:=0.364 _duty_factor:=2.2`
 
 Publish to cmd_vel manually
 

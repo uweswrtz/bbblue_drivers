@@ -1,3 +1,17 @@
+/**
+ * @file      bb-blue-battery-state.cpp
+ *
+ * @brief     node to publish battery state for Beaglbone Blue
+ *            based on the examples and librobotcontrol
+ *						by James Strawson
+ *
+ * @license   MIT
+ *
+ * @author    usxbrix
+ * @date      Nov 2018
+ */
+
+
 #include "ros/ros.h"
 #include "sensor_msgs/BatteryState.h"
 

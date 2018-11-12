@@ -34,6 +34,13 @@ Publish to cmd_vel manually
 
 `rostopic pub -1 /cmd_vel geometry_msgs/Twist -- '[1.0, 0.0, 0.0]' '[0.0, 0.0, 0]'``
 
+## Batter State Node
+
+### Run
+
+`rosrun ros-blue battery_state`
+
+
 
 ## IMU node
 

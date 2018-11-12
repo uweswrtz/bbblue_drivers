@@ -59,7 +59,7 @@ public:
 
   }
 
-  void calculateBatteryCondition()
+  int calculateBatteryCondition()
   {
     double pack_voltage;    // 2S pack voltage on JST XH 2S balance connector
     double cell_voltage;    // cell voltage
@@ -75,6 +75,7 @@ public:
       ROS_ERROR("ERROR: can't read voltages");
       //fprintf(stderr,"ERROR: can't read voltages\n");
       return -1;
+      //exit();
     }
     // check if a pack is on the 2S balance connector
     if(pack_voltage<VOLTAGE_DISCONNECT){
@@ -122,12 +123,14 @@ int main(int argc, char** argv)
 
   ros::init(argc, argv, "battery_state");
   ros::NodeHandle ros_node;
+  ros::NodeHandle pnh("~");  
+
 
   ROS_INFO("Initializing node %s in namespace: %s", ros::this_node::getName().c_str(), ros::this_node::getNamespace().c_str() );
 
   // TODO: use parameters
   int pst; //power_supply_technology
-  ros_node.param("~power_supply_technology", pst, 3);
+  pnh.param("power_supply_technology", pst, 3);
 
   ros::Rate loop_rate(1); // 1 hz
 

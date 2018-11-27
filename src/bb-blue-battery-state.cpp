@@ -43,7 +43,7 @@
 class BatteryState
 {
 protected:
-  // Subscriber to thrusters use in percent
+  // Subscriber
 
 
 public:
@@ -53,9 +53,10 @@ public:
     battery_state_publisher_ = ros_node.advertise<sensor_msgs::BatteryState>("battery_state", 1);
 
     // battery present and full
-    //battery_msg_.percentage = 100;
-    //battery_msg_.present = 1;
+    battery_msg_.percentage = 100;
+    battery_msg_.present = 1;
     battery_msg_.power_supply_technology = 3;
+    battery_msg_.power_supply_status = 0;
 
   }
 
@@ -90,14 +91,26 @@ public:
     ROS_INFO("Pack: %0.2lfV   Cell: %0.2lfV   DC Jack: %0.2lfV  ", \
       pack_voltage, cell_voltage, jack_voltage);
 
-    //battery_msg_.percentage = 100;
     battery_msg_.voltage = pack_voltage;
 
     /** TODO: percentage
     * https://github.com/StrawsonDesign/librobotcontrol/blob/master/services/rc_battery_monitor/src/rc_battery_monitor.c
     *
-    * battery_msg_.percentage = 100;
+    * Cell Voltage more then 4.15 = 100% = 1.0
+    * Minimum Cell Voltage 3.3 = 0
     */
+
+    if (cell_voltage >= 4.15){
+      battery_msg_.percentage = 100;
+      battery_msg_.power_supply_status = 4;
+    }
+    else if (cell_voltage <= 3.3)
+    {
+      battery_msg_.percentage = 0;
+    }
+    else {
+      battery_msg_.percentage = 20/17 * cell_voltage - 66/17;
+    }
 
     /** TODO: power_supply_status,power_supply_health
     *

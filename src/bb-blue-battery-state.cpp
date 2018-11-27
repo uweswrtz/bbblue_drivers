@@ -49,13 +49,20 @@ protected:
 public:
   BatteryState(ros::NodeHandle &ros_node)
   {
+    // TODO: use parameters
+    //power_supply_technology
+    ros_node.param("~power_supply_technology", \
+      battery_msg_.power_supply_technology, 3);
+    ros_node.param("~min_cell_voltage", min_cell_voltage, 3.3);
+    ros_node.param("~max_cell_voltage", max_cell_voltage, 4.15);
+
     // init publishers
     battery_state_publisher_ = ros_node.advertise<sensor_msgs::BatteryState>("battery_state", 1);
 
     // battery present and full
     battery_msg_.percentage = 100;
     battery_msg_.present = 1;
-    battery_msg_.power_supply_technology = 3;
+
     battery_msg_.power_supply_status = 0;
 
   }
@@ -126,6 +133,8 @@ protected:
   // publishers and messages to be published
   ros::Publisher battery_state_publisher_;
   sensor_msgs::BatteryState battery_msg_;
+  float min_cell_voltage;
+  float max_cell_voltage;
 
 };
 
@@ -137,10 +146,6 @@ int main(int argc, char** argv)
   ros::NodeHandle ros_node;
 
   ROS_INFO("Initializing node %s in namespace: %s", ros::this_node::getName().c_str(), ros::this_node::getNamespace().c_str() );
-
-  // TODO: use parameters
-  int pst; //power_supply_technology
-  ros_node.param("~power_supply_technology", pst, 3);
 
   ros::Rate loop_rate(1); // 1 hz
 

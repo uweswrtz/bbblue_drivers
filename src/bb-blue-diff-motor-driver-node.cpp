@@ -95,11 +95,13 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
   double velocity_left = ( dx - dr * wb / 2.0);
   double velocity_right = ( dx + dr * wb / 2.0);
 
-  ROS_INFO("set motor speed left: %f right: %f", velocity_left, velocity_right);
 
   // TODO DUTY = 2.2 * INPUT
   double duty_left = g_duty_factor * velocity_left;
   double duty_right = g_duty_factor * velocity_right;
+
+  ROS_INFO("set LEFT motor: velocity:%f duty:%f RIGHT motor: velocity:%f duty:%f", velocity_left, duty_left, velocity_right, duty_right);
+
   rc_motor_set(g_left_motor,duty_left);
   rc_motor_set(g_right_motor,duty_right);
   g_driving = 1;

@@ -11,6 +11,8 @@
 <arg name="maxspeed" default="0.4" />
 <arg name="minspeed" default="0.1" />
 <arg name="wheelbase" default="0.2" />
+<arg name="turnspeed" default="1.0") />
+<arg name="duty_factor" default="1.0") />
 
 <node name="diff_motor_driver" pkg="ros-blue" type="diff_motor_driver" respawn="true" />
   <param name="timeout" value="$(arg timeout)" />
@@ -19,6 +21,8 @@
   <param name="maxspeed" value="$(arg maxspeed)" />
   <param name="minspeed" value="$(arg minspeed)" />
   <param name="wheelbase" value="$(arg wheelbase)" />
+  <param name="turnspeed" value="$(arg turnspeed)" />
+  <param name="duty_factor" value="$(arg duty_factor)" />
 </node>
 
 </launch>

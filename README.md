@@ -1,6 +1,6 @@
-# ros-blue
+# bbblue_drivers
 
-some ROS nodes for the Beaglbone Blue
+some ROS drivers for the Beaglbone Blue
 
 >WIP!!! Ugly code included!!!
 

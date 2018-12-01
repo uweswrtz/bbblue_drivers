@@ -47,17 +47,17 @@ protected:
 
 
 public:
-  BatteryState(ros::NodeHandle &ros_node)
+  BatteryState(ros::NodeHandle &nh, ros::NodeHandle &pnh)
   {
-    // TODO: use parameters
-    //power_supply_technology
-    ros_node.param("~power_supply_technology", \
-      battery_msg_.power_supply_technology, 3);
-    ros_node.param("~min_cell_voltage", min_cell_voltage, 3.3);
-    ros_node.param("~max_cell_voltage", max_cell_voltage, 4.15);
+    // get private parameters
+    int pst; //power_supply_technology
+    pnh.param("power_supply_technology", pst, 3);
+    battery_msg_.power_supply_technology = (uint8_t) pst;
+    pnh.param("min_cell_voltage", min_cell_voltage, 3.3);
+    pnh.param("max_cell_voltage", max_cell_voltage, 4.15);
 
     // init publishers
-    battery_state_publisher_ = ros_node.advertise<sensor_msgs::BatteryState>("battery_state", 1);
+    battery_state_publisher_ = nh.advertise<sensor_msgs::BatteryState>("battery_state", 1);
 
     // battery present and full
     battery_msg_.percentage = 100;
@@ -96,12 +96,9 @@ public:
     // 2S pack, so divide by two for cell voltage
     cell_voltage = pack_voltage/2;
 
-    ROS_INFO("Pack: %0.2lfV   Cell: %0.2lfV   DC Jack: %0.2lfV  ", \
-      pack_voltage, cell_voltage, jack_voltage);
-
     battery_msg_.voltage = pack_voltage;
 
-    /** TODO: percentage
+    /** TODO: improve percentage
     * https://github.com/StrawsonDesign/librobotcontrol/blob/master/services/rc_battery_monitor/src/rc_battery_monitor.c
     *
     * Cell Voltage more then 4.15 = 100% = 1.0
@@ -117,8 +114,12 @@ public:
       battery_msg_.percentage = 0;
     }
     else {
-      battery_msg_.percentage = 20/17 * cell_voltage - 66/17;
+      //battery_msg_.percentage = 20/17 * cell_voltage - 66/17;
+      battery_msg_.percentage = 1.176470588 * cell_voltage - 3.882352941;
     }
+
+    ROS_INFO("Pack: %0.2lfV   Cell: %0.2lfV   DC Jack: %0.2lfV  Percentage: %0.2lf", \
+      pack_voltage, cell_voltage, jack_voltage, battery_msg_.percentage*100);
 
     /** TODO: power_supply_status,power_supply_health
     *
@@ -134,8 +135,8 @@ protected:
   // publishers and messages to be published
   ros::Publisher battery_state_publisher_;
   sensor_msgs::BatteryState battery_msg_;
-  float min_cell_voltage;
-  float max_cell_voltage;
+  double min_cell_voltage;
+  double max_cell_voltage;
 
 };
 
@@ -144,7 +145,7 @@ int main(int argc, char** argv)
 
 
   ros::init(argc, argv, "battery_state");
-  ros::NodeHandle ros_node;
+  ros::NodeHandle nh;
   ros::NodeHandle pnh("~");
 
 
@@ -158,7 +159,7 @@ int main(int argc, char** argv)
      return -1;
   }
 
-  BatteryState batteryState(ros_node);
+  BatteryState batteryState(nh,pnh);
 
   while (ros::ok())
   {

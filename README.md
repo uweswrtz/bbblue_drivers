@@ -26,9 +26,9 @@ some ROS drivers for the Beaglbone Blue
 
 ### Run
 
-`rosrun ros-blue diff_motor_driver`
+`rosrun bbblue_drivers diff_motor_driver`
 
-`rosrun ros-blue diff_motor_driver _left_motor:=3 _right_motor:=4 _minspeed:=0.137 _maxspeed:=0.364 _duty_factor:=2.2`
+`rosrun bbblue_drivers diff_motor_driver _left_motor:=3 _right_motor:=4 _minspeed:=0.137 _maxspeed:=0.364 _duty_factor:=2.2`
 
 Publish to cmd_vel manually
 
@@ -38,7 +38,7 @@ Publish to cmd_vel manually
 
 ### Run
 
-`rosrun ros-blue battery_state`
+`rosrun bbblue_drivers battery_state`
 
 
 
@@ -46,7 +46,7 @@ Publish to cmd_vel manually
 
 Start the IMU node
 
-`rosrun ros-blue imu_pub_node`
+`rosrun bbblue_drivers imu_pub_node`
 
 ### Visualizing IMU with rviz
 

@@ -4,7 +4,7 @@ some ROS drivers for the Beaglbone Blue
 
 >WIP!!! Ugly code included!!!
 
-## Nodes overview
+## Nodes Overview
 
 * differential driver node using the onboard motor ports
 * publisher for IMU messages from MPU9250
@@ -34,7 +34,7 @@ Publish to cmd_vel manually
 
 `rostopic pub -1 /cmd_vel geometry_msgs/Twist -- '[1.0, 0.0, 0.0]' '[0.0, 0.0, 0]'``
 
-## Batter State Node
+## Battery State Node
 
 ### Run
 

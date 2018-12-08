@@ -1,0 +1,8 @@
+
+<launch>
+
+<node name="battery_state" pkg="bbblue_drivers" type="battery_state" respawn="true" />
+
+</node>
+
+</launch>

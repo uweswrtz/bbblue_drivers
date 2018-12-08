@@ -1,10 +1,5 @@
 
 <launch>
-<!--
-<include file="$(find roswww)/launch/roswww.launch" />
-
--->
-
 <arg name="timeout" default="5" />
 <arg name="left_motor" default="1" />
 <arg name="right_motor" default="2" />
@@ -14,7 +9,7 @@
 <arg name="turnspeed" default="1.0") />
 <arg name="duty_factor" default="1.0") />
 
-<node name="diff_motor_driver" pkg="ros-blue" type="diff_motor_driver" respawn="true" />
+<node name="diff_motor_driver" pkg="bbblue_drivers" type="diff_motor_driver" respawn="true" />
   <param name="timeout" value="$(arg timeout)" />
   <param name="left_motor" value="$(arg left_motor)" />
   <param name="right_motor" value="$(arg right_motor)" />

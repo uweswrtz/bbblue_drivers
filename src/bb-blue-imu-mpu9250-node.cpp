@@ -114,10 +114,17 @@ static void __pub_data(void)
 
 	imu_msg.header.stamp = current_time;
 	imu_msg.header.frame_id = imu_frame_id_;
-	imu_msg.orientation.x = data.fused_quat[QUAT_X];
+
+// test unfused data
+	imu_msg.orientation.x = data.dmp_quat[QUAT_X];
+  	imu_msg.orientation.y = data.dmp_quat[QUAT_Y];
+	imu_msg.orientation.z = data.dmp_quat[QUAT_Z];
+  	imu_msg.orientation.w = data.dmp_quat[QUAT_W];
+
+/* 	imu_msg.orientation.x = data.fused_quat[QUAT_X];
   imu_msg.orientation.y = data.fused_quat[QUAT_Y];
 	imu_msg.orientation.z = data.fused_quat[QUAT_Z];
-  imu_msg.orientation.w = data.fused_quat[QUAT_W];
+  imu_msg.orientation.w = data.fused_quat[QUAT_W]; */
 
   imu_msg.angular_velocity.x = data.gyro[0]*3.14159265358979323846/180;
   imu_msg.angular_velocity.y = data.gyro[1]*3.14159265358979323846/180;

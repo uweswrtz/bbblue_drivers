@@ -117,9 +117,9 @@ static void __pub_data(void)
 
 // test unfused data
 	imu_msg.orientation.x = data.dmp_quat[QUAT_X];
-  	imu_msg.orientation.y = data.dmp_quat[QUAT_Y];
+ 	imu_msg.orientation.y = data.dmp_quat[QUAT_Y];
 	imu_msg.orientation.z = data.dmp_quat[QUAT_Z];
-  	imu_msg.orientation.w = data.dmp_quat[QUAT_W];
+ 	imu_msg.orientation.w = data.dmp_quat[QUAT_W];
 
 /* 	imu_msg.orientation.x = data.fused_quat[QUAT_X];
   imu_msg.orientation.y = data.fused_quat[QUAT_Y];

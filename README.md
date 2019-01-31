@@ -74,6 +74,17 @@ and default values
 
 ## IMU node
 
+### Parameter
+and default values
+
+*   ~frame_id = imu_link
+*   ~linear_acceleration_stddev = 0.04
+*   ~angular_velocity_stddev = 0.02
+*   ~orientation_stddev = 0.0025
+*   ~magnetometer_stddev = 0.04 
+
+covariances used from [razor_imu_9dof](https://github.com/KristofRobot/razor_imu_9dof/) https://github.com/KristofRobot/razor_imu_9dof/blob/indigo-devel/nodes/imu_node.py
+
 ### Run
 
 Start the IMU node

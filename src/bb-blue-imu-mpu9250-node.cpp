@@ -76,6 +76,11 @@ ros::Publisher imu_pub;
 ros::Publisher mag_pub;
 std::string imu_frame_id_;
 
+double linear_acceleration_stddev;
+double angular_velocity_stddev;
+double orientation_stddev;
+double magnetometer_stddev;
+
 /**
  * This is the IMU interrupt function to print data.
  */
@@ -106,11 +111,11 @@ static void __pub_data(void)
   imu_msg.orientation.z = data.dmp_quat[QUAT_Z];
   imu_msg.orientation.w = data.dmp_quat[QUAT_W];
 
-  /*  fusded quaternion including magnetometer	
+  /*  fusded quaternion including magnetometer
   imu_msg.orientation.x = data.fused_quat[QUAT_X];
   imu_msg.orientation.y = data.fused_quat[QUAT_Y];
   imu_msg.orientation.z = data.fused_quat[QUAT_Z];
-  imu_msg.orientation.w = data.fused_quat[QUAT_W]; 
+  imu_msg.orientation.w = data.fused_quat[QUAT_W];
   */
 
   imu_msg.angular_velocity.x = data.gyro[0] * 3.14159265358979323846 / 180;
@@ -121,39 +126,35 @@ static void __pub_data(void)
   imu_msg.linear_acceleration.y = data.accel[1];
   imu_msg.linear_acceleration.z = data.accel[2];
 
-  /**
-   * covariances used from razor_imu_9dof
-   * https://github.com/KristofRobot/razor_imu_9dof/blob/indigo-devel/nodes/imu_node.py
-   */
-  imu_msg.orientation_covariance[0] = 0.0025;
+  imu_msg.orientation_covariance[0] = orientation_stddev;
   imu_msg.orientation_covariance[1] = 0;
   imu_msg.orientation_covariance[2] = 0;
   imu_msg.orientation_covariance[3] = 0;
-  imu_msg.orientation_covariance[4] = 0.0025;
+  imu_msg.orientation_covariance[4] = orientation_stddev;
   imu_msg.orientation_covariance[5] = 0;
   imu_msg.orientation_covariance[6] = 0;
   imu_msg.orientation_covariance[7] = 0;
-  imu_msg.orientation_covariance[8] = 0.0025;
+  imu_msg.orientation_covariance[8] = orientation_stddev;
 
-  imu_msg.angular_velocity_covariance[0] = 0.02;
+  imu_msg.angular_velocity_covariance[0] = angular_velocity_stddev;
   imu_msg.angular_velocity_covariance[1] = 0;
   imu_msg.angular_velocity_covariance[2] = 0;
   imu_msg.angular_velocity_covariance[3] = 0;
-  imu_msg.angular_velocity_covariance[4] = 0.02;
+  imu_msg.angular_velocity_covariance[4] = angular_velocity_stddev;
   imu_msg.angular_velocity_covariance[5] = 0;
   imu_msg.angular_velocity_covariance[6] = 0;
   imu_msg.angular_velocity_covariance[7] = 0;
-  imu_msg.angular_velocity_covariance[8] = 0.02;
+  imu_msg.angular_velocity_covariance[8] = angular_velocity_stddev;
 
-  imu_msg.linear_acceleration_covariance[0] = 0.04;
+  imu_msg.linear_acceleration_covariance[0] = linear_acceleration_stddev;
   imu_msg.linear_acceleration_covariance[1] = 0;
   imu_msg.linear_acceleration_covariance[2] = 0;
   imu_msg.linear_acceleration_covariance[3] = 0;
-  imu_msg.linear_acceleration_covariance[4] = 0.04;
+  imu_msg.linear_acceleration_covariance[4] = linear_acceleration_stddev;
   imu_msg.linear_acceleration_covariance[5] = 0;
   imu_msg.linear_acceleration_covariance[6] = 0;
   imu_msg.linear_acceleration_covariance[7] = 0;
-  imu_msg.linear_acceleration_covariance[8] = 0.04;
+  imu_msg.linear_acceleration_covariance[8] = linear_acceleration_stddev;
 
   imu_pub.publish(imu_msg);
 
@@ -164,9 +165,15 @@ static void __pub_data(void)
   mag_msg.magnetic_field.y = data.mag[1] / 1000000;
   mag_msg.magnetic_field.z = data.mag[2] / 1000000;
 
-  // TODO: covariance for magnetic field
-
-  mag_pub.publish(mag_msg);
+  mag_msg.magnetic_field_covariance[0] = magnetometer_stddev;
+  mag_msg.magnetic_field_covariance[1] = 0;
+  mag_msg.magnetic_field_covariance[2] = 0;
+  mag_msg.magnetic_field_covariance[3] = 0;
+  mag_msg.magnetic_field_covariance[4] = magnetometer_stddev;
+  mag_msg.magnetic_field_covariance[5] = 0;
+  mag_msg.magnetic_field_covariance[6] = 0;
+  mag_msg.magnetic_field_covariance[7] = 0;
+  mag_msg.magnetic_field_covariance[8] = magnetometer_stddev;
 
   return;
 }
@@ -224,8 +231,20 @@ int main(int argc, char* argv[])
   */
 
   ros::init(argc, argv, "imu_pub_node");
+
+  ros::NodeHandle pnh("~");
+  pnh.param<std::string>("frame_id", imu_frame_id_, "imu_link");
+  /** covariances used from razor_imu_9dof
+   *  https://github.com/KristofRobot/razor_imu_9dof/blob/indigo-devel/nodes/imu_node.py
+   */
+  pnh.param<double>("linear_acceleration_stddev", linear_acceleration_stddev, 0.04);
+  pnh.param<double>("angular_velocity_stddev", angular_velocity_stddev, 0.02);
+  pnh.param<double>("orientation_stddev", orientation_stddev, 0.0025);
+  pnh.param<double>("magnetometer_stddev", magnetometer_stddev, 0.04); //TODO: what's a good default value?
+
+
   ros::NodeHandle n("imu");
-  n.param<std::string>("frame_id", imu_frame_id_, "imu_link");
+
   ROS_INFO("FrameID: %s", imu_frame_id_.c_str());
 
   // ros::Publisher imu_pub = n.advertise<sensor_msgs::Imu>("imu_publisher", 10);

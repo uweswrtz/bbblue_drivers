@@ -1,6 +1,18 @@
 
 <launch>
 
-<node name="imu_pub_node" pkg="bbblue_drivers" type="imu_pub_node" respawn="true" />
+    <arg name="frame_id" default="imu_link" />
+    <arg name="linear_acceleration_stddev" default="0.04" />
+    <arg name="angular_velocity_stddev" default="0.02" />
+    <arg name="orientation_stddev" default="0.0025" />
+    <arg name="magnetometer_stddev" default="0.04" />
+
+    <node name="imu_pub_node" pkg="bbblue_drivers" type="imu_pub_node" respawn="true">
+        <param name="frame_id" value="$(arg frame_id)" />
+        <param name="linear_acceleration_stddev" value="$(arg linear_acceleration_stddev)" />
+        <param name="angular_velocity_stddev" value="$(arg angular_velocity_stddev)" />
+        <param name="orientation_stddev" value="$(arg orientation_stddev)" />
+        <param name="magnetometer_stddev" value="$(arg magnetometer_stddev)" />
+    </node>
 
 </launch>

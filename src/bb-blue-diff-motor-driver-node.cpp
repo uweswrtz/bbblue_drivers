@@ -52,6 +52,7 @@ double g_minspeed;  // param default 0.1
 double g_turnspeed;  // param default 1
 double g_wheelbase; // param default 0.2
 double g_duty_factor; // param default 2.0
+int g_rate; // param default 10
 
 double vx = 0;
 double vy = 0;
@@ -136,6 +137,7 @@ int main(int argc, char **argv)
   ros::param::param("~wheelbase", g_wheelbase, 0.2);
   ros::param::param("~turnspeed", g_turnspeed, 1.0);
   ros::param::param("~duty_factor", g_duty_factor, 1.0);
+  ros::param::param("~rate", g_rate, 10);
 
 
   if(g_left_motor < 1 or g_left_motor > 4 or g_right_motor < 1 or g_right_motor > 4 )
@@ -178,7 +180,8 @@ int main(int argc, char **argv)
 
 // %Tag(SPIN)%
 
-  ros::Rate r(10);
+  ros::Rate r(g_rate);
+
   while (ros::ok())
   {
     ros::spinOnce();

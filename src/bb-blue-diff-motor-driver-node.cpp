@@ -64,19 +64,15 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
   g_msg_received = ros::Time::now();
   ROS_INFO("cmd_vel Linear: [%f, %f, %f] Angular: [%f, %f, %f]", cmd_vel->linear.x, cmd_vel->linear.y, cmd_vel->linear.z, cmd_vel->angular.x, cmd_vel->angular.y, cmd_vel->angular.z);
 
-  double dx = cmd_vel->linear.x;
-  double dr = cmd_vel->angular.z;
-  double dy = cmd_vel->linear.y;
+  vx = cmd_vel->linear.x;
+  vy = cmd_vel->linear.y;
+  vth = cmd_vel->angular.z;
 
-
-  vx = dx;
-  vy = dy;
-  vth = dr;
-
-  if( dx > g_maxspeed )
+  if( vx > g_maxspeed )
   {
-    dx = g_maxspeed;
-    ROS_INFO("Velocity %f larger than %f! Limiting speed to %f.", dx, g_maxspeed, dx);
+    ROS_INFO("Velocity %f larger than %f! Limiting speed to %f.", vx, g_maxspeed, g_maxspeed);
+    vx = g_maxspeed;
+    
   }
 
 
@@ -92,12 +88,11 @@ void cmd_velCallback(const geometry_msgs::Twist::ConstPtr& cmd_vel)
 
   */
 
-  double wb = g_wheelbase; //wheel base
-  double velocity_left = ( dx - dr * wb / 2.0);
-  double velocity_right = ( dx + dr * wb / 2.0);
+  double velocity_left = ( vx - vth * g_wheelbase / 2.0);
+  double velocity_right = ( vx + vth * g_wheelbase / 2.0);
 
 
-  // TODO DUTY = 2.2 * INPUT
+  // calcaulate duty cycle form velocity and duty factor
   double duty_left = g_duty_factor * velocity_left;
   double duty_right = g_duty_factor * velocity_right;
 

@@ -1,23 +1,23 @@
-
 <launch>
-<arg name="timeout" default="5" />
-<arg name="left_motor" default="1" />
-<arg name="right_motor" default="2" />
-<arg name="maxspeed" default="0.4" />
-<arg name="minspeed" default="0.1" />
-<arg name="wheelbase" default="0.2" />
-<arg name="turnspeed" default="1.0") />
-<arg name="duty_factor" default="1.0") />
 
-<node name="diff_motor_driver" pkg="bbblue_drivers" type="diff_motor_driver" respawn="true" />
-  <param name="timeout" value="$(arg timeout)" />
-  <param name="left_motor" value="$(arg left_motor)" />
-  <param name="right_motor" value="$(arg right_motor)" />
-  <param name="maxspeed" value="$(arg maxspeed)" />
-  <param name="minspeed" value="$(arg minspeed)" />
-  <param name="wheelbase" value="$(arg wheelbase)" />
-  <param name="turnspeed" value="$(arg turnspeed)" />
-  <param name="duty_factor" value="$(arg duty_factor)" />
-</node>
+  <arg name="timeout" default="5" />
+  <arg name="left_motor" default="1" />
+  <arg name="right_motor" default="2" />
+  <arg name="maxspeed" default="0.4" />
+  <arg name="minspeed" default="0.1" />
+  <arg name="wheelbase" default="0.2" />
+  <arg name="turnspeed" default="1.0" />
+  <arg name="duty_factor" default="1.0" />
+
+  <node name="diff_motor_driver" pkg="bbblue_drivers" type="diff_motor_driver" respawn="true">
+    <param name="timeout" value="$(arg timeout)" />
+    <param name="left_motor" value="$(arg left_motor)" />
+    <param name="right_motor" value="$(arg right_motor)" />
+    <param name="maxspeed" value="$(arg maxspeed)" />
+    <param name="minspeed" value="$(arg minspeed)" />
+    <param name="wheelbase" value="$(arg wheelbase)" />
+    <param name="turnspeed" value="$(arg turnspeed)" />
+    <param name="duty_factor" value="$(arg duty_factor)" />
+  </node>
 
 </launch>

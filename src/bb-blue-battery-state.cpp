@@ -32,27 +32,25 @@
  * SOFTWARE.
  */
 
-
 #include "ros/ros.h"
 #include "sensor_msgs/BatteryState.h"
 #include <rc/adc.h>
 //#include <stdlib.h> // for atoi() and exit()
 
-#define VOLTAGE_DISCONNECT      1 // Threshold for detecting disconnected battery
+#define VOLTAGE_DISCONNECT 1  // Threshold for detecting disconnected battery
 
 class BatteryState
 {
 protected:
   // Subscriber
 
-
 public:
-  BatteryState(ros::NodeHandle &nh, ros::NodeHandle &pnh)
+  BatteryState(ros::NodeHandle& nh, ros::NodeHandle& pnh)
   {
     // get private parameters
-    int pst; //power_supply_technology
+    int pst;  // power_supply_technology
     pnh.param("power_supply_technology", pst, 3);
-    battery_msg_.power_supply_technology = (uint8_t) pst;
+    battery_msg_.power_supply_technology = (uint8_t)pst;
     pnh.param("min_cell_voltage", min_cell_voltage, 3.3);
     pnh.param("max_cell_voltage", max_cell_voltage, 4.15);
 
@@ -64,48 +62,49 @@ public:
     battery_msg_.present = 1;
 
     battery_msg_.power_supply_status = 0;
-
   }
 
   int calculateBatteryCondition()
   {
-    double pack_voltage;    // 2S pack voltage on JST XH 2S balance connector
-    double cell_voltage;    // cell voltage
-    double jack_voltage;    // could be dc power supply or another battery
-
-
+    double pack_voltage;  // 2S pack voltage on JST XH 2S balance connector
+    double cell_voltage;  // cell voltage
+    double jack_voltage;  // could be dc power supply or another battery
 
     // read in the voltage of the 2S pack and DC jack
     pack_voltage = rc_adc_batt();
     jack_voltage = rc_adc_dc_jack();
     // sanity check the SDC didn't return an error
-    if(pack_voltage<0.0 || jack_voltage<0.0){
+    if (pack_voltage < 0.0 || jack_voltage < 0.0)
+    {
       ROS_ERROR("ERROR: can't read voltages");
-      //fprintf(stderr,"ERROR: can't read voltages\n");
+      // fprintf(stderr,"ERROR: can't read voltages\n");
       return -1;
-      //exit();
+      // exit();
     }
     // check if a pack is on the 2S balance connector
-    if(pack_voltage<VOLTAGE_DISCONNECT){
+    if (pack_voltage < VOLTAGE_DISCONNECT)
+    {
       pack_voltage = 0;
       battery_msg_.present = 0;
     }
-    if(jack_voltage<VOLTAGE_DISCONNECT){
+    if (jack_voltage < VOLTAGE_DISCONNECT)
+    {
       jack_voltage = 0;
     }
     // 2S pack, so divide by two for cell voltage
-    cell_voltage = pack_voltage/2;
+    cell_voltage = pack_voltage / 2;
 
     battery_msg_.voltage = pack_voltage;
 
     /** TODO: improve percentage
-    * https://github.com/StrawsonDesign/librobotcontrol/blob/master/services/rc_battery_monitor/src/rc_battery_monitor.c
-    *
-    * Cell Voltage more then 4.15 = 100% = 1.0
-    * Minimum Cell Voltage 3.3 = 0
-    */
+     * https://github.com/StrawsonDesign/librobotcontrol/blob/master/services/rc_battery_monitor/src/rc_battery_monitor.c
+     *
+     * Cell Voltage more then 4.15 = 100% = 1.0
+     * Minimum Cell Voltage 3.3 = 0
+     */
 
-    if (cell_voltage >= 4.15){
+    if (cell_voltage >= 4.15)
+    {
       battery_msg_.percentage = 100;
       battery_msg_.power_supply_status = 4;
     }
@@ -113,17 +112,18 @@ public:
     {
       battery_msg_.percentage = 0;
     }
-    else {
-      //battery_msg_.percentage = 20/17 * cell_voltage - 66/17;
+    else
+    {
+      // battery_msg_.percentage = 20/17 * cell_voltage - 66/17;
       battery_msg_.percentage = 1.176470588 * cell_voltage - 3.882352941;
     }
 
-    ROS_INFO("Pack: %0.2lfV   Cell: %0.2lfV   DC Jack: %0.2lfV  Percentage: %0.2lf", \
-      pack_voltage, cell_voltage, jack_voltage, battery_msg_.percentage*100);
+    ROS_INFO("Pack: %0.2lfV   Cell: %0.2lfV   DC Jack: %0.2lfV  Percentage: %0.2lf", pack_voltage, cell_voltage,
+             jack_voltage, battery_msg_.percentage * 100);
 
     /** TODO: power_supply_status,power_supply_health
-    *
-    */
+     *
+     */
   }
 
   void Publish()
@@ -137,29 +137,26 @@ protected:
   sensor_msgs::BatteryState battery_msg_;
   double min_cell_voltage;
   double max_cell_voltage;
-
 };
 
 int main(int argc, char** argv)
 {
-
-
   ros::init(argc, argv, "battery_state");
   ros::NodeHandle nh;
   ros::NodeHandle pnh("~");
 
+  ROS_INFO("Initializing node %s in namespace: %s", ros::this_node::getName().c_str(),
+           ros::this_node::getNamespace().c_str());
 
-  ROS_INFO("Initializing node %s in namespace: %s", ros::this_node::getName().c_str(), ros::this_node::getNamespace().c_str() );
+  ros::Rate loop_rate(1);  // 1 hz
 
-  ros::Rate loop_rate(1); // 1 hz
-
-  if(rc_adc_init()==-1)
+  if (rc_adc_init() == -1)
   {
-     ROS_ERROR("Initialize ADC: FAILED");
-     return -1;
+    ROS_ERROR("Initialize ADC: FAILED");
+    return -1;
   }
 
-  BatteryState batteryState(nh,pnh);
+  BatteryState batteryState(nh, pnh);
 
   while (ros::ok())
   {
